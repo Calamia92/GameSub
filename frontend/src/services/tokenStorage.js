@@ -40,7 +40,7 @@ class TokenStorage {
   }
 
   isSecureContext() {
-    return location.protocol === 'https:' || location.hostname === 'localhost';
+    return window.location.protocol === 'https:' || window.location.hostname === 'localhost';
   }
 }
 
