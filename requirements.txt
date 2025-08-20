@@ -4,3 +4,10 @@ django-cors-headers==4.4.0
 psycopg2-binary==2.9.9
 requests==2.31.0
 python-decouple==3.8
+
+# JWT pour Supabase (OBLIGATOIRE)
+pyjwt==2.8.0
+cryptography==41.0.7
+
+# Utilitaires pour RAWG API
+python-slugify==8.0.1
