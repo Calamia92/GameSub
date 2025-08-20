@@ -14,7 +14,7 @@ function App() {
       <Router>
         <div className="App">
           <Header />
-          <div className="container">
+          <main className="min-h-screen">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -22,7 +22,7 @@ function App() {
               <Route path="/my-substitutes" element={<MySubstitutes />} />
               <Route path="/game/:id" element={<GameDetails />} />
             </Routes>
-          </div>
+          </main>
         </div>
       </Router>
     </AuthProvider>

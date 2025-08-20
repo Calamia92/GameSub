@@ -1,7 +1,7 @@
 import axios from 'axios';
-import tokenStorage from './tokenStorage';
+import { getAccessToken } from './supabase';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8001/api';
 
 class ApiService {
   constructor() {
@@ -12,10 +12,10 @@ class ApiService {
       },
     });
 
-    this.axios.interceptors.request.use((config) => {
-      const token = tokenStorage.getToken();
+    this.axios.interceptors.request.use(async (config) => {
+      const token = await getAccessToken();
       if (token) {
-        config.headers.Authorization = `Token ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     });
@@ -25,50 +25,16 @@ class ApiService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Token expiré ou invalide
-          tokenStorage.clear();
-          window.location.href = '/login';
+          // Token expiré ou invalide - Supabase gère automatiquement le refresh
+          console.error('Token expired or invalid');
         }
         return Promise.reject(error);
       }
     );
   }
 
-  async register(userData) {
-    const response = await this.axios.post('/auth/register/', userData);
-    if (response.data.token) {
-      tokenStorage.setToken(response.data.token);
-      tokenStorage.setUser(response.data.user);
-    }
-    return response.data;
-  }
-
-  async login(credentials) {
-    const response = await this.axios.post('/auth/login/', credentials);
-    if (response.data.token) {
-      tokenStorage.setToken(response.data.token);
-      tokenStorage.setUser(response.data.user);
-    }
-    return response.data;
-  }
-
-  async logout() {
-    try {
-      await this.axios.post('/auth/logout/');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      tokenStorage.clear();
-    }
-  }
-
-  getCurrentUser() {
-    return tokenStorage.getUser();
-  }
-
-  isAuthenticated() {
-    return !!tokenStorage.getToken();
-  }
+  // Les méthodes d'auth sont maintenant gérées par Supabase dans AuthContext
+  // Ces méthodes sont conservées pour la compatibilité mais ne sont plus utilisées
 
   async searchGames(query, page = 1, filters = {}) {
     const params = { q: query, page, ...filters };

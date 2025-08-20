@@ -21,7 +21,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
     'corsheaders',
     'games',
     'users',
@@ -33,6 +32,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'GameSub.middleware.SupabaseJWTMiddleware',  # Notre middleware Supabase
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -100,9 +100,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django REST Framework
 # =========================
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
@@ -118,12 +115,29 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
+    "http://localhost:3002",
+    "http://127.0.0.1:3002",
+    "http://localhost:3003",
+    "http://127.0.0.1:3003",
 ]
+
+# =========================
+# Supabase Configuration
+# =========================
+SUPABASE_URL = config("SUPABASE_URL", default="")
+SUPABASE_ANON_KEY = config("SUPABASE_ANON_KEY", default="")
+
+if not SUPABASE_URL and not DEBUG:
+    raise ValueError("SUPABASE_URL environment variable is required in production")
+
+if not SUPABASE_ANON_KEY and not DEBUG:
+    raise ValueError("SUPABASE_ANON_KEY environment variable is required in production")
 
 # =========================
 # RAWG API
 # =========================
-RAWG_API_KEY = config("RAWG_API_KEY", default="")
+# Force RAWG API key - temporary fix for environment variable conflict
+RAWG_API_KEY = "c27339648d8140afbf1219f346108ca6"
 RAWG_BASE_URL = "https://api.rawg.io/api"
 
 if not RAWG_API_KEY and not DEBUG:

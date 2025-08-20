@@ -12,6 +12,7 @@ class RAWGAPIService:
     def __init__(self):
         self.api_key = settings.RAWG_API_KEY
         self.base_url = settings.RAWG_BASE_URL
+        logger.info(f"RAWG API Key loaded: {self.api_key[:10]}..." if self.api_key else "No RAWG API Key")
 
     def _make_request(self, endpoint, params=None):
         if not params:

@@ -2,15 +2,11 @@ from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
-from rest_framework.authtoken.models import Token
 from django.db.models import Q
 from .models import Game, Substitution, UserGame
 from .serializers import (
     GameSerializer, GameSearchSerializer, SubstitutionSerializer,
-    SubstitutionCreateSerializer, UserGameSerializer, UserGameCreateSerializer,
-    UserSerializer, UserRegistrationSerializer
+    SubstitutionCreateSerializer, UserGameSerializer, UserGameCreateSerializer
 )
 from .services import RAWGAPIService
 
@@ -109,7 +105,11 @@ class SubstitutionListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Substitution.objects.filter(user=self.request.user).order_by('-created_at')
+        # Récupérer l'UUID Supabase depuis l'objet user personnalisé
+        user_id = getattr(self.request.user, 'id', None)
+        if not user_id:
+            return Substitution.objects.none()
+        return Substitution.objects.filter(user_id=user_id).order_by('-created_at')
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -126,7 +126,9 @@ class SubstitutionListCreateView(generics.ListCreateAPIView):
             serializer.validated_data['substitute_game']
         )
         
-        serializer.save(user=self.request.user, similarity_score=similarity_score)
+        # Utiliser l'UUID Supabase au lieu de l'objet User Django
+        user_id = getattr(self.request.user, 'id', None)
+        serializer.save(user_id=user_id, similarity_score=similarity_score)
 
 
 class UserGameListCreateView(generics.ListCreateAPIView):
@@ -134,11 +136,21 @@ class UserGameListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Récupérer l'UUID Supabase depuis l'objet user personnalisé
+        user_id = getattr(self.request.user, 'id', None)
+        if not user_id:
+            return UserGame.objects.none()
+            
         status_filter = self.request.query_params.get('status')
-        queryset = UserGame.objects.filter(user=self.request.user)
+        queryset = UserGame.objects.filter(user_id=user_id)
         if status_filter:
             queryset = queryset.filter(status=status_filter)
         return queryset.order_by('-created_at')
+
+    def perform_create(self, serializer):
+        # Utiliser l'UUID Supabase au lieu de l'objet User Django
+        user_id = getattr(self.request.user, 'id', None)
+        serializer.save(user_id=user_id)
 
     def get_serializer_class(self):
         if self.request.method == 'POST':

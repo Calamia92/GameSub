@@ -12,15 +12,15 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(Substitution)
 class SubstitutionAdmin(admin.ModelAdmin):
-    list_display = ['user', 'source_game', 'substitute_game', 'similarity_score', 'created_at']
+    list_display = ['user_id', 'source_game', 'substitute_game', 'similarity_score', 'created_at']
     list_filter = ['created_at']
-    search_fields = ['source_game__name', 'substitute_game__name', 'user__username']
+    search_fields = ['source_game__name', 'substitute_game__name']
     readonly_fields = ['created_at']
 
 
 @admin.register(UserGame)
 class UserGameAdmin(admin.ModelAdmin):
-    list_display = ['user', 'game', 'status', 'rating', 'created_at']
+    list_display = ['user_id', 'game', 'status', 'rating', 'created_at']
     list_filter = ['status', 'rating', 'created_at']
-    search_fields = ['user__username', 'game__name']
+    search_fields = ['game__name']
     readonly_fields = ['created_at', 'updated_at']

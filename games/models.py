@@ -1,6 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+import uuid
 
 
 class Game(models.Model):
@@ -30,7 +30,7 @@ class Game(models.Model):
 
 
 class Substitution(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.UUIDField()  # UUID de l'utilisateur Supabase
     source_game = models.ForeignKey(Game, related_name='source_substitutions', on_delete=models.CASCADE)
     substitute_game = models.ForeignKey(Game, related_name='substitute_substitutions', on_delete=models.CASCADE)
     justification = models.TextField(blank=True, null=True)
@@ -39,10 +39,10 @@ class Substitution(models.Model):
 
     class Meta:
         db_table = 'substitutions'
-        unique_together = ('user', 'source_game', 'substitute_game')
+        unique_together = ('user_id', 'source_game', 'substitute_game')
 
     def __str__(self):
-        return f"{self.source_game.name} -> {self.substitute_game.name}"
+        return f"{self.source_game.name} -> {self.substitute_game.name} (User: {self.user_id})"
 
 
 class UserGame(models.Model):
@@ -56,7 +56,7 @@ class UserGame(models.Model):
         (PLAYED, 'Played'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.UUIDField()  # UUID de l'utilisateur Supabase
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     rating = models.IntegerField(
@@ -70,7 +70,7 @@ class UserGame(models.Model):
 
     class Meta:
         db_table = 'user_games'
-        unique_together = ('user', 'game', 'status')
+        unique_together = ('user_id', 'game', 'status')
 
     def __str__(self):
-        return f"{self.user.username} - {self.game.name} ({self.status})"
+        return f"User {self.user_id} - {self.game.name} ({self.status})"
