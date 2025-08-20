@@ -15,14 +15,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
     // Obtenir la session actuelle au chargement
     const getInitialSession = async () => {
-      const { session, error } = await supabaseAuth.getSession();
-      if (!error && session) {
-        setSession(session);
-        setUser(session.user);
+      const { data, error } = await supabaseAuth.getSession();
+      if (!error && data?.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+        setToken(data.session.access_token);
       }
       setLoading(false);
     };
@@ -34,6 +36,7 @@ export const AuthProvider = ({ children }) => {
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        setToken(session?.access_token ?? null);
         setLoading(false);
       }
     );
@@ -45,7 +48,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const { data, error } = await supabaseAuth.signIn(credentials.email || credentials.username, credentials.password);
+      const { data, error } = await supabaseAuth.signIn(
+        credentials.email || credentials.username,
+        credentials.password
+      );
       if (error) throw error;
       return data;
     } catch (error) {
@@ -56,12 +62,12 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const { data, error } = await supabaseAuth.signUp(
-        userData.email, 
-        userData.password, 
+        userData.email,
+        userData.password,
         {
           username: userData.username,
           first_name: userData.first_name,
-          last_name: userData.last_name
+          last_name: userData.last_name,
         }
       );
       if (error) throw error;
@@ -75,6 +81,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const { error } = await supabaseAuth.signOut();
       if (error) throw error;
+      setUser(null);
+      setSession(null);
+      setToken(null);
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -83,6 +92,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     session,
+    token, // ✅ exposé dans le contexte
     loading,
     login,
     register,

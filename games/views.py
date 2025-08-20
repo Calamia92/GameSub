@@ -10,13 +10,17 @@ from .serializers import (
 )
 from .services import RAWGAPIService
 
-
+# -------------------------------
+# Games
+# -------------------------------
 class GameListView(generics.ListAPIView):
     queryset = Game.objects.all()
     serializer_class = GameSearchSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
+        print("👤 Utilisateur DRF:", self.request.user, getattr(self.request.user, "id", None))
+
         queryset = Game.objects.all()
         search = self.request.query_params.get('search')
         genre = self.request.query_params.get('genre')
@@ -33,12 +37,10 @@ class GameListView(generics.ListAPIView):
             
         return queryset.order_by('-rating')
 
-
 class GameDetailView(generics.RetrieveAPIView):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     permission_classes = [permissions.AllowAny]
-
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
@@ -69,7 +71,6 @@ def search_games_api(request):
     
     return Response(results)
 
-
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def get_game_substitutes(request, game_id):
@@ -99,13 +100,14 @@ def get_game_substitutes(request, game_id):
         'substitutes': substitute_data
     })
 
-
+# -------------------------------
+# Substitutions
+# -------------------------------
 class SubstitutionListCreateView(generics.ListCreateAPIView):
     serializer_class = SubstitutionSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Récupérer l'UUID Supabase depuis l'objet user personnalisé
         user_id = getattr(self.request.user, 'id', None)
         if not user_id:
             return Substitution.objects.none()
@@ -117,26 +119,22 @@ class SubstitutionListCreateView(generics.ListCreateAPIView):
         return SubstitutionSerializer
 
     def perform_create(self, serializer):
-        source_game_id = serializer.validated_data['source_game'].external_id
-        substitute_game_id = serializer.validated_data['substitute_game'].external_id
-        
         rawg_service = RAWGAPIService()
         similarity_score = rawg_service.calculate_similarity_score(
             serializer.validated_data['source_game'],
             serializer.validated_data['substitute_game']
         )
-        
-        # Utiliser l'UUID Supabase au lieu de l'objet User Django
         user_id = getattr(self.request.user, 'id', None)
         serializer.save(user_id=user_id, similarity_score=similarity_score)
 
-
+# -------------------------------
+# User Games
+# -------------------------------
 class UserGameListCreateView(generics.ListCreateAPIView):
     serializer_class = UserGameSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Récupérer l'UUID Supabase depuis l'objet user personnalisé
         user_id = getattr(self.request.user, 'id', None)
         if not user_id:
             return UserGame.objects.none()
@@ -148,7 +146,6 @@ class UserGameListCreateView(generics.ListCreateAPIView):
         return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
-        # Utiliser l'UUID Supabase au lieu de l'objet User Django
         user_id = getattr(self.request.user, 'id', None)
         serializer.save(user_id=user_id)
 
@@ -156,5 +153,3 @@ class UserGameListCreateView(generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return UserGameCreateSerializer
         return UserGameSerializer
-
-

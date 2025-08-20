@@ -53,6 +53,12 @@ class UserGameSerializer(serializers.ModelSerializer):
 
 
 class UserGameCreateSerializer(serializers.ModelSerializer):
+    # On récupère le jeu via l'external_id au lieu de la PK
+    game = serializers.SlugRelatedField(
+        queryset=Game.objects.all(),
+        slug_field='external_id'
+    )
+
     class Meta:
         model = UserGame
         fields = ['game', 'status', 'rating', 'notes']
