@@ -28,7 +28,7 @@ class RAWGAPIService:
             logger.error(f"RAWG API error: {e}")
             return None
 
-    def search_games(self, query, page=1, page_size=20, genres=None, platforms=None, dates=None):
+    def search_games(self, query, page=1, page_size=20, genres=None, platforms=None, dates=None, rating=None, ordering=None):
         params = {
             'search': query,
             'page': page,
@@ -41,6 +41,12 @@ class RAWGAPIService:
             params['platforms'] = platforms
         if dates:
             params['dates'] = dates
+        if rating:
+            # RAWG API utilise "rating" pour filtrer par note minimale
+            params['rating'] = rating
+        if ordering:
+            # RAWG API utilise "ordering" pour trier les résultats
+            params['ordering'] = ordering
             
         return self._make_request('games', params)
 

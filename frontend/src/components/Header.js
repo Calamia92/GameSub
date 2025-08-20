@@ -9,8 +9,7 @@ import {
   XIcon,
   LogOutIcon,
   BookOpenIcon,
-  ClockIcon,
-  HeartIcon
+  ClockIcon
 } from 'lucide-react';
 
 const Header = () => {

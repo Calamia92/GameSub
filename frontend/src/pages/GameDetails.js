@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useSnackbar } from '../contexts/SnackbarContext';
 import ApiService from '../services/api';
 import GameCard from '../components/GameCard';
+import { 
+  CalendarIcon, 
+  StarIcon, 
+  ClockIcon, 
+  GamepadIcon, 
+  TrophyIcon, 
+  BookmarkIcon,
+  ExternalLinkIcon,
+  ArrowLeftIcon,
+  TagIcon,
+  UsersIcon
+} from 'lucide-react';
 
 const GameDetails = () => {
   const { id } = useParams();
   const { isAuthenticated } = useAuth();
+  const { showSuccess, showError } = useSnackbar();
   const [gameData, setGameData] = useState(null);
   const [substitutes, setSubstitutes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +49,7 @@ const GameDetails = () => {
 
   const saveSubstitute = async (substitute) => {
     if (!isAuthenticated) {
-      alert('Vous devez être connecté pour sauvegarder des substituts');
+      showError('Vous devez être connecté pour sauvegarder des substituts');
       return;
     }
 
@@ -47,12 +61,12 @@ const GameDetails = () => {
         substitute.id,
         `Substitut suggéré avec ${Math.round(substitute.similarity_score * 100)}% de similarité`
       );
-      alert('Substitut sauvegardé avec succès!');
+      showSuccess('Substitut sauvegardé avec succès!');
     } catch (err) {
       if (err.response && err.response.status === 400) {
-        alert('Ce substitut est déjà dans votre bibliothèque');
+        showError('Ce substitut est déjà dans votre bibliothèque');
       } else {
-        alert('Erreur lors de la sauvegarde');
+        showError('Erreur lors de la sauvegarde');
       }
       console.error('Save substitute error:', err);
     } finally {
@@ -61,15 +75,46 @@ const GameDetails = () => {
   };
 
   if (loading) {
-    return <div className="loading">Chargement des détails du jeu...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="loading-spinner mb-4"></div>
+          <p className="text-gray-600">Chargement des détails du jeu...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="error">{error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <div className="text-red-500 mb-2">
+              <ExternalLinkIcon className="w-8 h-8 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-red-800 mb-2">Erreur</h3>
+            <p className="text-red-700">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!gameData) {
-    return <div className="error">Jeu introuvable</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md mx-auto">
+            <div className="text-yellow-500 mb-2">
+              <GamepadIcon className="w-8 h-8 mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-yellow-800 mb-2">Jeu introuvable</h3>
+            <p className="text-yellow-700">Ce jeu n'existe pas ou n'est plus disponible.</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const formatDate = (dateString) => {
@@ -95,180 +140,220 @@ const GameDetails = () => {
         href={store.url}
         target="_blank"
         rel="noopener noreferrer"
-        style={{ 
-          margin: '0 10px 0 0', 
-          padding: '5px 10px',
-          backgroundColor: '#007bff',
-          color: 'white',
-          textDecoration: 'none',
-          borderRadius: '4px',
-          fontSize: '14px'
-        }}
+        className="inline-flex items-center px-3 py-2 mr-2 mb-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200"
       >
+        <ExternalLinkIcon className="w-4 h-4 mr-1" />
         {store.name}
       </a>
     ));
   };
 
   return (
-    <div>
-      {/* Détails du jeu principal */}
-      <div style={{ 
-        background: 'white', 
-        padding: '30px', 
-        borderRadius: '8px', 
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        marginBottom: '30px' 
-      }}>
-        <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
-          {gameData.background_image && (
-            <img 
-              src={gameData.background_image}
-              alt={gameData.name}
-              style={{ 
-                width: '300px', 
-                height: '200px', 
-                objectFit: 'cover',
-                borderRadius: '8px' 
-              }}
-            />
-          )}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+          {/* Game Header */}
+          <div className="relative">
+            {gameData.background_image && (
+              <div className="relative h-80 lg:h-96">
+                <img 
+                  src={gameData.background_image}
+                  alt={gameData.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              </div>
+            )}
+            
+            {/* Game Title Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h1 className="text-4xl lg:text-5xl font-bold mb-2 text-shadow">{gameData.name}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                {gameData.rating && (
+                  <div className="flex items-center bg-black/30 rounded-full px-3 py-1">
+                    <StarIcon className="w-4 h-4 text-yellow-400 mr-1" />
+                    <span className="font-semibold">{gameData.rating}/5</span>
+                  </div>
+                )}
+                {gameData.metacritic && (
+                  <div className="flex items-center bg-black/30 rounded-full px-3 py-1">
+                    <TrophyIcon className="w-4 h-4 text-green-400 mr-1" />
+                    <span className="font-semibold">{gameData.metacritic}/100</span>
+                  </div>
+                )}
+                {gameData.released && (
+                  <div className="flex items-center bg-black/30 rounded-full px-3 py-1">
+                    <CalendarIcon className="w-4 h-4 text-blue-400 mr-1" />
+                    <span>{formatDate(gameData.released)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           
-          <div style={{ flex: 1, minWidth: '300px' }}>
-            <h1>{gameData.name}</h1>
-            
-            <div style={{ marginBottom: '15px' }}>
-              <strong>Genres:</strong> {getGenreNames(gameData.genres)}
+          {/* Game Details */}
+          <div className="p-6 lg:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Main Info */}
+              <div className="lg:col-span-2 space-y-6">
+                {gameData.description && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center">
+                      <BookmarkIcon className="w-5 h-5 mr-2 text-primary-600" />
+                      Description
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed">
+                      {gameData.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Side Info */}
+              <div className="space-y-6">
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start">
+                      <TagIcon className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Genres</p>
+                        <p className="text-gray-900">{getGenreNames(gameData.genres)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start">
+                      <GamepadIcon className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Plateformes</p>
+                        <p className="text-gray-900">{getPlatformNames(gameData.platforms)}</p>
+                      </div>
+                    </div>
+                    
+                    {gameData.playtime && (
+                      <div className="flex items-start">
+                        <ClockIcon className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Durée moyenne</p>
+                          <p className="text-gray-900">{gameData.playtime}h</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {gameData.esrb_rating && (
+                      <div className="flex items-start">
+                        <UsersIcon className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Classification ESRB</p>
+                          <p className="text-gray-900">{gameData.esrb_rating}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Store Links */}
+                {gameData.stores && gameData.stores.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <ExternalLinkIcon className="w-5 h-5 mr-2" />
+                      Disponible sur
+                    </h3>
+                    <div className="space-y-2">
+                      {getStoreLinks(gameData.stores)}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Official Website */}
+                {gameData.website && (
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Site officiel</h3>
+                    <a 
+                      href={gameData.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
+                    >
+                      <ExternalLinkIcon className="w-4 h-4 mr-2" />
+                      Visiter le site
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Substituts suggérés */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="p-6 lg:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <GamepadIcon className="w-6 h-6 mr-2 text-primary-600" />
+                Jeux similaires recommandés
+                <span className="ml-2 px-2 py-1 bg-primary-100 text-primary-800 text-sm font-medium rounded-full">
+                  {substitutes.length}
+                </span>
+              </h2>
             </div>
             
-            <div style={{ marginBottom: '15px' }}>
-              <strong>Plateformes:</strong> {getPlatformNames(gameData.platforms)}
-            </div>
-            
-            <div style={{ marginBottom: '15px' }}>
-              <strong>Date de sortie:</strong> {formatDate(gameData.released)}
-            </div>
-            
-            {gameData.rating && (
-              <div style={{ marginBottom: '15px' }}>
-                <strong>Note:</strong> ⭐ {gameData.rating}/5
-              </div>
-            )}
-            
-            {gameData.metacritic && (
-              <div style={{ marginBottom: '15px' }}>
-                <strong>Metacritic:</strong> {gameData.metacritic}/100
-              </div>
-            )}
-            
-            {gameData.playtime && (
-              <div style={{ marginBottom: '15px' }}>
-                <strong>Durée moyenne:</strong> {gameData.playtime}h
-              </div>
-            )}
-            
-            {gameData.esrb_rating && (
-              <div style={{ marginBottom: '15px' }}>
-                <strong>Classification ESRB:</strong> {gameData.esrb_rating}
-              </div>
-            )}
-            
-            {gameData.stores && gameData.stores.length > 0 && (
-              <div style={{ marginBottom: '15px' }}>
-                <strong>Disponible sur:</strong><br />
-                <div style={{ marginTop: '10px' }}>
-                  {getStoreLinks(gameData.stores)}
+            {substitutes.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
+                  <GamepadIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Aucun substitut trouvé
+                  </h3>
+                  <p className="text-gray-500">
+                    Nous n'avons pas trouvé de jeux similaires pour ce titre.
+                  </p>
                 </div>
               </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {substitutes.map((substitute) => (
+                  <div key={substitute.id} className="relative group">
+                    <GameCard 
+                      game={substitute} 
+                      similarityScore={substitute.similarity_score} 
+                    />
+                    {isAuthenticated && (
+                      <button
+                        onClick={() => saveSubstitute(substitute)}
+                        disabled={savingSubstitute === substitute.id}
+                        className="absolute top-3 right-3 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-200 opacity-0 group-hover:opacity-100 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {savingSubstitute === substitute.id ? (
+                          <div className="loading-spinner w-3 h-3" />
+                        ) : (
+                          <>
+                            <BookmarkIcon className="w-3 h-3" />
+                            <span>Sauvegarder</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
             
-            {gameData.website && (
-              <div style={{ marginBottom: '15px' }}>
-                <strong>Site officiel:</strong>{' '}
-                <a 
-                  href={gameData.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#007bff' }}
-                >
-                  Visiter
-                </a>
+            {!isAuthenticated && substitutes.length > 0 && (
+              <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="bg-yellow-100 rounded-full p-2">
+                    <UsersIcon className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <p className="text-yellow-800 font-medium">
+                    Connectez-vous pour sauvegarder vos substituts favoris!
+                  </p>
+                </div>
               </div>
             )}
           </div>
         </div>
-        
-        {gameData.description && (
-          <div style={{ marginTop: '20px' }}>
-            <h3>Description</h3>
-            <p style={{ lineHeight: '1.6', color: '#555' }}>
-              {gameData.description}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Substituts suggérés */}
-      <div>
-        <h2>Jeux similaires recommandés ({substitutes.length})</h2>
-        
-        {substitutes.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '40px',
-            background: 'white',
-            borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <p>Aucun substitut trouvé pour ce jeu.</p>
-          </div>
-        ) : (
-          <div className="game-grid">
-            {substitutes.map((substitute) => (
-              <div key={substitute.id} style={{ position: 'relative' }}>
-                <GameCard 
-                  game={substitute} 
-                  similarityScore={substitute.similarity_score} 
-                />
-                {isAuthenticated && (
-                  <button
-                    onClick={() => saveSubstitute(substitute)}
-                    disabled={savingSubstitute === substitute.id}
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      background: '#28a745',
-                      color: 'white',
-                      border: 'none',
-                      padding: '8px 12px',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {savingSubstitute === substitute.id ? '...' : '💾 Sauvegarder'}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {!isAuthenticated && substitutes.length > 0 && (
-          <div style={{
-            background: '#fff3cd',
-            border: '1px solid #ffeaa7',
-            color: '#856404',
-            padding: '15px',
-            borderRadius: '4px',
-            marginTop: '20px',
-            textAlign: 'center'
-          }}>
-            <p>Connectez-vous pour sauvegarder vos substituts favoris!</p>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ApiService from '../services/api';
 import GameCard from '../components/GameCard';
+import SearchFilters from '../components/SearchFilters';
 import { 
   SearchIcon, 
   GamepadIcon, 
@@ -17,6 +18,13 @@ const Home = () => {
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState({
+    genres: '',
+    platforms: '',
+    dates: '',
+    rating: '',
+    ordering: ''
+  });
 
   const handleSearch = async (page = 1) => {
     if (!searchQuery.trim()) {
@@ -28,7 +36,7 @@ const Home = () => {
     setError('');
 
     try {
-      const response = await ApiService.searchGames(searchQuery, page);
+      const response = await ApiService.searchGames(searchQuery, page, filters);
       setSearchResults(response.results || []);
       setCurrentPage(page);
       setTotalPages(Math.ceil(response.count / 20) || 1);
@@ -48,6 +56,30 @@ const Home = () => {
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       handleSearch(newPage);
+    }
+  };
+
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+    // Relancer automatiquement la recherche si on a une requête
+    if (searchQuery.trim()) {
+      setCurrentPage(1);
+      handleSearch(1);
+    }
+  };
+
+  const handleClearFilters = () => {
+    const clearedFilters = {
+      genres: '',
+      platforms: '',
+      dates: '',
+      rating: '',
+      ordering: ''
+    };
+    setFilters(clearedFilters);
+    // Relancer la recherche avec les filtres effacés
+    if (searchQuery.trim()) {
+      handleSearch(1);
     }
   };
 
@@ -72,7 +104,7 @@ const Home = () => {
       </div>
 
       {/* Search Section */}
-      <div className="card max-w-2xl mx-auto text-center">
+      <div className="card max-w-4xl mx-auto">
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
@@ -124,6 +156,17 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* Filters Section - Show when search query exists or filters are active */}
+      {(searchQuery.trim() !== '' || Object.values(filters).some(f => f !== '')) && (
+        <div className="max-w-6xl mx-auto">
+          <SearchFilters
+            filters={filters}
+            onChange={handleFiltersChange}
+            onClear={handleClearFilters}
+          />
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (

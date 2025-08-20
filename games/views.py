@@ -50,6 +50,8 @@ def search_games_api(request):
     genres = request.GET.get('genres')
     platforms = request.GET.get('platforms')
     dates = request.GET.get('dates')
+    rating = request.GET.get('rating')
+    ordering = request.GET.get('ordering')
     
     if not query:
         return Response({'error': 'Query parameter required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,7 +62,9 @@ def search_games_api(request):
         page=page,
         genres=genres,
         platforms=platforms,
-        dates=dates
+        dates=dates,
+        rating=rating,
+        ordering=ordering
     )
     
     if not results:
@@ -71,20 +75,23 @@ def search_games_api(request):
     
     # Enregistrer la recherche dans l'historique si l'utilisateur est connecté
     if request.user.is_authenticated:
-        filters = {}
-        if genres:
-            filters['genres'] = genres
-        if platforms:
-            filters['platforms'] = platforms
-        if dates:
-            filters['dates'] = dates
-            
-        SearchHistory.objects.create(
-            user_id=request.user.id,
-            query=query,
-            filters=filters,
-            results_count=results.get('count', 0)
-        )
+        try:
+            filters = {}
+            if genres:
+                filters['genres'] = genres
+            if platforms:
+                filters['platforms'] = platforms
+            if dates:
+                filters['dates'] = dates
+                
+            SearchHistory.objects.create(
+                user_id=request.user.id,
+                query=query,
+                filters=filters,
+                results_count=results.get('count', 0)
+            )
+        except Exception as e:
+            pass  # Ignorer les erreurs d'historique
     
     return Response(results)
 
