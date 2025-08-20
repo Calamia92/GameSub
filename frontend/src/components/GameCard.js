@@ -9,6 +9,7 @@ import {
   HeartIcon
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import ApiService from '../services/api';
 
 const GameCard = ({ game, similarityScore = null }) => {
   const navigate = useNavigate();
@@ -26,25 +27,16 @@ const GameCard = ({ game, similarityScore = null }) => {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/my-games/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          game: game.id,             // champ attendu par le serializer
-          status: 'favorite',           // valeur par défaut si nécessaire
-          rating: Math.round(game.rating) || null,
-          notes: ''
-        })
-      });
-
-      if (!response.ok) throw new Error('Erreur lors de l’ajout aux favoris');
+      await ApiService.saveUserGame(
+        game.external_id || game.id,
+        'favorite',
+        Math.round(game.rating) || null,
+        ''
+      );
       setIsFavorite(true);
     } catch (err) {
       console.error(err);
-      alert('Impossible d’ajouter aux favoris.');
+      alert('Impossible d'ajouter aux favoris.');
     } finally {
       setLoading(false);
     }

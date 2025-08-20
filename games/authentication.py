@@ -16,18 +16,15 @@ class SupabaseUser:
 class SupabaseAuthentication(BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.headers.get("Authorization")
-        print("🔑 Authorization reçu:", auth_header)
-
         if not auth_header or not auth_header.startswith("Bearer "):
             return None
 
         token = auth_header.split(" ")[1]
-        print("📌 Token reçu:", token[:20], "...")
 
         try:
-            # ⚠️ Pour tests : décodage sans vérifier la signature
+            # Décodage JWT sans vérifier la signature (pour tests)
+            # En production: ajouter la vérification de signature
             payload = jwt.decode(token, options={"verify_signature": False})
-            print("✅ Payload décodé:", payload)
 
             user_id = payload.get("sub") or payload.get("user_id")
             email = payload.get("email")
@@ -38,5 +35,4 @@ class SupabaseAuthentication(BaseAuthentication):
             return (user, token)
 
         except Exception as e:
-            print("❌ Erreur JWT:", e)
             raise exceptions.AuthenticationFailed("Token invalide")

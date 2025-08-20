@@ -58,6 +58,11 @@ class RAWGAPIService:
 
     def save_game_to_db(self, game_data):
         try:
+            # Vérifications de sécurité pour éviter les erreurs
+            if not game_data or 'id' not in game_data:
+                logger.error("Invalid game data: missing id")
+                return None
+                
             game, created = Game.objects.get_or_create(
                 external_id=game_data['id'],
                 defaults={
@@ -71,10 +76,10 @@ class RAWGAPIService:
                     'esrb_rating': game_data.get('esrb_rating', {}).get('name') if game_data.get('esrb_rating') else None,
                     'background_image': game_data.get('background_image'),
                     'website': game_data.get('website'),
-                    'genres': [{'id': g['id'], 'name': g['name']} for g in game_data.get('genres', [])],
-                    'platforms': [{'id': p['platform']['id'], 'name': p['platform']['name']} for p in game_data.get('platforms', [])],
-                    'stores': [{'id': s['store']['id'], 'name': s['store']['name'], 'url': s.get('url')} for s in game_data.get('stores', [])],
-                    'tags': [{'id': t['id'], 'name': t['name']} for t in game_data.get('tags', [])]
+                    'genres': [{'id': g['id'], 'name': g['name']} for g in game_data.get('genres', []) if g and 'id' in g and 'name' in g],
+                    'platforms': [{'id': p['platform']['id'], 'name': p['platform']['name']} for p in game_data.get('platforms', []) if p and 'platform' in p],
+                    'stores': [{'id': s['store']['id'], 'name': s['store']['name'], 'url': s.get('url')} for s in game_data.get('stores', []) if s and 'store' in s],
+                    'tags': [{'id': t['id'], 'name': t['name']} for t in game_data.get('tags', []) if t and 'id' in t and 'name' in t]
                 }
             )
             return game

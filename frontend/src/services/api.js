@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAccessToken } from './supabase';
 
-const API_BASE_URL = 'http://localhost:8001/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 class ApiService {
   constructor() {
@@ -75,6 +75,49 @@ class ApiService {
       notes,
     });
     return response.data;
+  }
+
+  // Nouvelles méthodes pour l'historique de recherche
+  async getSearchHistory() {
+    const response = await this.axios.get('/my-search-history/');
+    return response.data;
+  }
+
+  // Nouvelles méthodes pour la bibliothèque personnelle
+  async getMyLibraries() {
+    const response = await this.axios.get('/my-library/');
+    return response.data;
+  }
+
+  async createLibrary(name, description = '', isPublic = false) {
+    const response = await this.axios.post('/my-library/', {
+      name,
+      description,
+      is_public: isPublic,
+    });
+    return response.data;
+  }
+
+  async getLibraryGames(libraryId) {
+    const response = await this.axios.get(`/library/${libraryId}/games/`);
+    return response.data;
+  }
+
+  async addGameFromAPI(externalId, addToLibrary = true) {
+    const response = await this.axios.post('/add-game-from-api/', {
+      external_id: externalId,
+      add_to_library: addToLibrary,
+    });
+    return response.data;
+  }
+
+  // Méthodes pour les favoris (amélioration)  
+  async getFavoriteGames() {
+    return this.getUserGames('favorite');
+  }
+
+  async getMyLibraryGames() {
+    return this.getUserGames('library');
   }
 }
 

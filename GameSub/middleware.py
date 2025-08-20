@@ -46,7 +46,6 @@ class SupabaseJWTMiddleware:
                 request.user = AnonymousUser()
                 
         except Exception as e:
-            print(f"Token verification error: {e}")
             request.user = AnonymousUser()
 
     def verify_supabase_token(self, token):
@@ -78,7 +77,6 @@ class SupabaseJWTMiddleware:
         except jwt.InvalidTokenError:
             return None
         except Exception as e:
-            print(f"Token decode error: {e}")
             return None
 
     def should_skip_auth(self, path):

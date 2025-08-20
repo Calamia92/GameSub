@@ -23,7 +23,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'games',
-    'users',
 ]
 
 MIDDLEWARE = [
@@ -32,7 +31,6 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'GameSub.middleware.SupabaseJWTMiddleware',  # Notre middleware Supabase
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -101,7 +99,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # =========================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'games.authentication.SupabaseAuthentication',  # <-- ton fichier
+        'games.authentication.SupabaseAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -139,8 +137,7 @@ if not SUPABASE_ANON_KEY and not DEBUG:
 # =========================
 # RAWG API
 # =========================
-# Force RAWG API key - temporary fix for environment variable conflict
-RAWG_API_KEY = "c27339648d8140afbf1219f346108ca6"
+RAWG_API_KEY = config("RAWG_API_KEY", default="c27339648d8140afbf1219f346108ca6")
 RAWG_BASE_URL = "https://api.rawg.io/api"
 
 if not RAWG_API_KEY and not DEBUG:

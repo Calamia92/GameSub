@@ -7,7 +7,10 @@ import {
   UserIcon, 
   MenuIcon, 
   XIcon,
-  LogOutIcon
+  LogOutIcon,
+  BookOpenIcon,
+  ClockIcon,
+  HeartIcon
 } from 'lucide-react';
 
 const Header = () => {
@@ -64,6 +67,22 @@ const Header = () => {
                 >
                   <UserIcon className="w-4 h-4" />
                   <span>Mes Substituts</span>
+                </button>
+                
+                <button
+                  onClick={() => handleNavigation('/my-library')}
+                  className="flex items-center space-x-2 px-4 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <BookOpenIcon className="w-4 h-4" />
+                  <span>Ma Bibliothèque</span>
+                </button>
+                
+                <button
+                  onClick={() => handleNavigation('/search-history')}
+                  className="flex items-center space-x-2 px-4 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <ClockIcon className="w-4 h-4" />
+                  <span>Historique</span>
                 </button>
                 
                 <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-white/20">
@@ -137,6 +156,22 @@ const Header = () => {
                   >
                     <UserIcon className="w-5 h-5" />
                     <span>Mes Substituts</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleNavigation('/my-library')}
+                    className="flex items-center space-x-3 w-full px-4 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                  >
+                    <BookOpenIcon className="w-5 h-5" />
+                    <span>Ma Bibliothèque</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleNavigation('/search-history')}
+                    className="flex items-center space-x-3 w-full px-4 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                  >
+                    <ClockIcon className="w-5 h-5" />
+                    <span>Historique</span>
                   </button>
                   
                   <div className="px-4 py-3 border-t border-white/20 mt-4">
