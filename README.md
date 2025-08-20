@@ -1,148 +1,223 @@
 # GameSub 🎮
 
-Une application web moderne pour découvrir des alternatives à vos jeux favoris.
+Une application web moderne pour découvrir des alternatives à vos jeux favoris grâce à l'intelligence artificielle.
 
 ## 🚀 Fonctionnalités
 
-- **Recherche intelligente** : Trouvez des jeux par nom, genre, plateforme ou année
-- **Suggestions personnalisées** : Algorithme de recommandation basé sur les genres, tags et ratings
-- **Authentification sécurisée** : Créez votre compte et gérez votre profil
-- **Bibliothèque personnelle** : Sauvegardez vos découvertes de substituts
-- **Interface moderne** : Design responsive avec React
+- **Recherche intelligente** : Trouvez des jeux en temps réel via l'API RAWG
+- **Suggestions IA** : Algorithme de recommandation basé sur les genres, tags et ratings
+- **Authentification Supabase** : Système d'auth moderne avec JWT
+- **Design moderne** : Interface responsive avec Tailwind CSS et animations
+- **Base de données cloud** : PostgreSQL hébergé sur Supabase
 
-## 🛠 Technologies
+## 🛠 Stack Technique
 
 ### Backend
 - **Django 5.2** - Framework web Python
 - **Django REST Framework** - API REST
-- **PostgreSQL** - Base de données
-- **RAWG API** - Source des données de jeux
+- **Supabase PostgreSQL** - Base de données cloud
+- **JWT Authentication** - Authentification moderne
+- **RAWG API** - Source des données de jeux (20k+ jeux)
 
 ### Frontend  
-- **React 18** - Interface utilisateur
-- **React Router** - Navigation
-- **Axios** - Client HTTP
+- **React 18** - Interface utilisateur moderne
+- **Tailwind CSS** - Framework CSS utilitaire
+- **Lucide React** - Icônes modernes
+- **React Router** - Navigation SPA
+- **Axios** - Client HTTP avec intercepteurs
 
 ## 📋 Prérequis
 
 1. **Python 3.8+** installé
-2. **Node.js 14+** et npm installés
-3. **PostgreSQL** ou compte **Supabase**
+2. **Node.js 16+** et npm installés
+3. **Compte Supabase** (gratuit)
 4. **Clé API RAWG** (gratuite sur https://rawg.io/apidocs)
 
-## Installation Backend (Django)
+## ⚡ Installation Rapide
 
-### 1. Installer les dépendances Python
+### 1. Cloner le projet
 ```bash
-cd GameSub
+git clone https://github.com/votre-username/gamesub.git
+cd gamesub
+```
+
+### 2. Configuration Backend (Django)
+
+#### Installer les dépendances Python
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configurer la base de données
-Editez le fichier `.env` avec vos informations :
+#### Configurer les variables d'environnement
+Créez un fichier `.env` à la racine du projet :
 ```env
-# Base de données PostgreSQL/Supabase
-DB_NAME=gamesub
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_HOST=your_db_host
+# Django
+DEBUG=True
+SECRET_KEY=votre-clé-secrète-django
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Supabase Database
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=votre_mot_de_passe_supabase
+DB_HOST=votre_host_supabase.supabase.co
 DB_PORT=5432
 
-# Clé API RAWG (obligatoire)
-RAWG_API_KEY=your_rawg_api_key_here
+# Supabase Auth
+SUPABASE_URL=https://votre_projet.supabase.co
+SUPABASE_ANON_KEY=votre_clé_anonyme_supabase
+
+# RAWG API (obligatoire)
+RAWG_API_KEY=votre_clé_rawg_ici
 ```
 
-### 3. Appliquer les migrations
+#### Appliquer les migrations
 ```bash
-python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 4. Créer un superutilisateur (optionnel)
+#### Lancer le serveur Django
 ```bash
-python manage.py createsuperuser
+python manage.py runserver 8001
 ```
+✅ Backend disponible sur http://localhost:8001
 
-### 5. Lancer le serveur Django
-```bash
-python manage.py runserver
-```
-Le backend sera disponible sur http://localhost:8000
+### 3. Configuration Frontend (React)
 
-## Installation Frontend (React)
-
-### 1. Installer les dépendances Node.js
+#### Installer les dépendances Node.js
 ```bash
 cd frontend
 npm install
 ```
 
-### 2. Lancer l'application React
+#### Lancer l'application React
 ```bash
 npm start
 ```
-Le frontend sera disponible sur http://localhost:3000
+✅ Frontend disponible sur http://localhost:3003
 
-## Utilisation
+## 🎯 Utilisation
 
-1. **Recherche de jeux** : Allez sur la page d'accueil et recherchez un jeu par nom
-2. **Voir les détails** : Cliquez sur un jeu pour voir ses détails et substituts suggérés
-3. **Créer un compte** : Inscrivez-vous pour sauvegarder vos substituts favoris
-4. **Mes substituts** : Une fois connecté, accédez à votre bibliothèque de substituts
+1. **Recherche de jeux** : Page d'accueil avec recherche en temps réel
+2. **Navigation** : Interface responsive avec menu mobile
+3. **Authentification** : Inscription/connexion avec Supabase
+4. **Découverte** : Parcourez des milliers de jeux avec filtres
+5. **Sauvegarde** : Créez votre bibliothèque personnelle
 
-## Fonctionnalités
+## ✅ Fonctionnalités Implémentées
 
-✅ **Recherche de jeux** via l'API RAWG  
-✅ **Suggestions de substituts** basées sur les genres, tags et ratings  
-✅ **Authentification utilisateur** (inscription/connexion)  
-✅ **Sauvegarde de substituts** dans la bibliothèque personnelle  
-✅ **Interface responsive** avec React  
-✅ **API REST** complète avec Django REST Framework  
+🎮 **Recherche RAWG** - API avec 20k+ jeux réels  
+🔐 **Auth Supabase** - JWT moderne, sessions persistantes  
+🎨 **Design moderne** - Tailwind CSS, animations fluides  
+📱 **Responsive** - Mobile-first design  
+🚀 **Performance** - Lazy loading, optimisations  
+🛡️ **Sécurisé** - CORS configuré, validation des données  
+⚡ **Temps réel** - Recherche instantanée  
 
-## Structure du projet
+## 📁 Architecture
 
 ```
 GameSub/
-├── GameSub/           # Configuration Django
-├── games/             # App principale Django
-│   ├── models.py      # Modèles de données
-│   ├── views.py       # Vues API
-│   ├── serializers.py # Sérialiseurs REST
-│   ├── services.py    # Service API RAWG
-│   └── urls.py        # URLs de l'app
-├── frontend/          # Application React
+├── GameSub/              # Configuration Django
+│   ├── settings.py       # Configuration avec Supabase
+│   ├── middleware.py     # JWT Auth middleware  
+│   └── urls.py          # URLs principales
+├── games/               # App Django principale
+│   ├── models.py        # Modèles avec UUID (Supabase)
+│   ├── views.py         # Vues API REST
+│   ├── services.py      # Service RAWG API
+│   └── serializers.py   # Sérialiseurs DRF
+├── frontend/            # Application React
 │   ├── src/
-│   │   ├── components/ # Composants React
-│   │   ├── pages/      # Pages de l'app
-│   │   ├── services/   # Service API
-│   │   └── contexts/   # Contextes React
-│   └── package.json
-├── requirements.txt   # Dépendances Python
-└── .env              # Variables d'environnement
+│   │   ├── components/  # Composants React modernes
+│   │   ├── pages/       # Pages (Home, Login, Register)
+│   │   ├── services/    # Services (API, Supabase)
+│   │   ├── contexts/    # Contexte Auth
+│   │   └── index.css    # Styles Tailwind
+│   ├── package.json     # Dépendances React
+│   └── tailwind.config.js # Config Tailwind
+├── requirements.txt     # Dépendances Python
+└── .env                # Variables d'environnement
 ```
 
-## Endpoints API
+## 🔌 Endpoints API
 
-- `GET /api/search/?q=query` - Rechercher des jeux
-- `GET /api/substitutes/{game_id}/` - Obtenir les substituts d'un jeu  
-- `GET /api/my-substitutes/` - Substituts sauvegardés (auth requise)
-- `POST /api/my-substitutes/` - Sauvegarder un substitut (auth requise)
-- `POST /api/auth/register/` - Créer un compte
-- `POST /api/auth/login/` - Se connecter
-- `POST /api/auth/logout/` - Se déconnecter
+### Jeux
+- `GET /api/search/?q=query&page=1` - Rechercher des jeux
+- `GET /api/substitutes/{game_id}/` - Obtenir les substituts d'un jeu
+- `GET /api/games/` - Liste des jeux locaux
+- `GET /api/games/{id}/` - Détails d'un jeu
 
-## Troubleshooting
+### Utilisateur (Auth Supabase requise)
+- `GET /api/my-substitutes/` - Mes substituts sauvegardés
+- `POST /api/my-substitutes/` - Sauvegarder un substitut
+- `GET /api/my-games/` - Mes jeux
+- `POST /api/my-games/` - Ajouter un jeu à ma collection
 
-### Erreur de base de données
-- Vérifiez que PostgreSQL est en cours d'exécution
-- Vérifiez les paramètres de connexion dans `.env`
-- Assurez-vous que la base de données existe
+### Authentification (gérée par Supabase côté frontend)
+- Headers: `Authorization: Bearer {jwt_token}`
+- Middleware Django valide automatiquement les JWT Supabase
 
-### Erreur API RAWG
-- Vérifiez que votre clé API RAWG est valide
-- Vérifiez votre connexion internet
-- La clé gratuite a une limite de requêtes par jour
+## 🐛 Dépannage
 
 ### Erreur CORS
-- Assurez-vous que Django et React tournent sur les bons ports (8000 et 3000)
-- Les URLs de CORS sont configurées dans `settings.py`
+```bash
+# Vérifiez que les serveurs tournent sur les bons ports :
+# Django: http://localhost:8001
+# React: http://localhost:3003
+```
+
+### Erreur API RAWG "401 Unauthorized"
+```bash
+# Vérifiez votre clé API RAWG dans .env
+RAWG_API_KEY=votre_vraie_clé_ici  # Pas de JWT Supabase !
+```
+
+### Erreur Supabase connexion
+```bash
+# Vérifiez vos URLs et clés Supabase dans .env
+# Testez la connexion dans l'interface Supabase
+```
+
+### Base de données
+```sql
+-- Supprimer les tables Django Auth (optionnel)
+DROP TABLE IF EXISTS auth_user CASCADE;
+DROP TABLE IF EXISTS authtoken_token CASCADE;
+-- etc. (voir section nettoyage dans les issues)
+```
+
+## 🚀 Déploiement
+
+### Prêt pour le déploiement sur :
+- **Backend** : Railway, Heroku, DigitalOcean
+- **Frontend** : Vercel, Netlify, Surge
+- **Database** : Supabase (inclus)
+- **Images** : Supabase Storage ou Cloudinary
+
+### Variables d'environnement de production
+```env
+DEBUG=False
+ALLOWED_HOSTS=votre-domaine.com
+# Gardez les mêmes clés Supabase et RAWG
+```
+
+## 🤝 Contribution
+
+1. Fork le projet
+2. Créez votre branche : `git checkout -b feature/ma-fonctionnalité`
+3. Commitez : `git commit -m 'Ajout de ma fonctionnalité'`
+4. Push : `git push origin feature/ma-fonctionnalité`
+5. Ouvrez une Pull Request
+
+## 📄 Licence
+
+MIT License - Voir [LICENSE](LICENSE) pour plus de détails.
+
+## 👨‍💻 Auteur
+
+Créé avec ❤️ par OMRI Boubaker, PERSONNE Théo, KRAICHETTE Théo
+
+---
+
+**🎮 Découvrez votre prochain jeu favori avec GameSub !**
