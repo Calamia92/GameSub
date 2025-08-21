@@ -26,8 +26,9 @@ const Home = () => {
     ordering: ''
   });
 
-  const handleSearch = async (page = 1) => {
-    if (!searchQuery.trim()) {
+  const handleSearch = async (page = 1, query = null) => {
+    const searchTerm = query || searchQuery;
+    if (!searchTerm.trim()) {
       setError('Veuillez entrer un terme de recherche');
       return;
     }
@@ -36,7 +37,7 @@ const Home = () => {
     setError('');
 
     try {
-      const response = await ApiService.searchGames(searchQuery, page, filters);
+      const response = await ApiService.searchGames(searchTerm, page, filters);
       setSearchResults(response.results || []);
       setCurrentPage(page);
       setTotalPages(Math.ceil(response.count / 20) || 1);
@@ -145,7 +146,7 @@ const Home = () => {
                   key={search}
                   onClick={() => {
                     setSearchQuery(search);
-                    handleSearch(1);
+                    handleSearch(1, search);
                   }}
                   className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-primary-100 hover:text-primary-700 transition-colors"
                 >
