@@ -1,3 +1,7 @@
+import openai
+import os
+import json
+from rest_framework.views import APIView
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -10,6 +14,7 @@ from .serializers import (
 )
 from .services import RAWGAPIService
 
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class GameListView(generics.ListAPIView):
     queryset = Game.objects.all()
@@ -158,3 +163,78 @@ class UserGameListCreateView(generics.ListCreateAPIView):
         return UserGameSerializer
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+import openai
+import os
+import json
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# class AIDynamicQuizView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         """
+#         GET: Générer un quiz dynamique avec 5 jeux à évaluer
+#         """
+#         # Récupérer aléatoirement 5 jeux depuis la DB
+#         games = Game.objects.order_by('?')[:5]
+#         serializer = GameSerializer(games, many=True)
+#         return Response({"quiz_games": serializer.data})
+
+#     def post(self, request):
+#         """
+#         POST: Recevoir les réponses de l'utilisateur et générer une recommandation
+#         Attendu :
+#         {
+#             "user_id": "...",
+#             "responses": [
+#                 {"game": "The Witcher 3", "like": true},
+#                 {"game": "Stardew Valley", "like": false},
+#                 ...
+#             ]
+#         }
+#         """
+#         user_id = request.data.get("user_id")
+#         responses = request.data.get("responses", [])
+
+#         if not user_id:
+#             return Response({"error": "user_id manquant"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if not responses:
+#             return Response({"error": "Aucune réponse fournie"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # Construire le prompt pour l'IA
+#         prompt = f"""
+#         L'utilisateur a répondu à un quiz sur ses goûts en jeux vidéo :
+#         {json.dumps(responses, ensure_ascii=False)}
+
+#         Propose UN jeu qu'il devrait aimer basé sur ses réponses.
+#         Répond uniquement en JSON avec ce format :
+#         {{
+#             "suggested_game": "...",
+#             "reasoning": "..."
+#         }}
+#         """
+
+#         try:
+#             response = openai.ChatCompletion.create(
+#                 model="gpt-4o-mini",
+#                 messages=[{"role": "user", "content": prompt}],
+#                 max_tokens=300
+#             )
+#             content = response["choices"][0]["message"]["content"]
+
+#             # Essayer de parser le JSON renvoyé
+#             try:
+#                 reco_json = json.loads(content)
+#             except json.JSONDecodeError:
+#                 reco_json = {"error": "Impossible de parser la réponse de l'IA", "raw_response": content}
+
+#             return Response(reco_json, status=status.HTTP_200_OK)
+
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -120,7 +120,25 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3003",
     "http://127.0.0.1:3003",
 ]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'apikey',  # For Supabase
+    'prefer',  # For Supabase
+]
 
+# Allow credentials for authentication
+CORS_ALLOW_CREDENTIALS = True
+
+# Preflight cache
+CORS_PREFLIGHT_MAX_AGE = 86400
 # =========================
 # Supabase Configuration
 # =========================
