@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+from pgvector.django import VectorField  # si tu utilises django-pgvector
 
 class Game(models.Model):
     external_id = models.IntegerField(unique=True)
@@ -20,6 +20,7 @@ class Game(models.Model):
     tags = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    embedding = VectorField(dimensions=384, null=True)  # all-MiniLM-L6-v2
 
     class Meta:
         db_table = 'games'
@@ -33,19 +34,34 @@ class Game(models.Model):
 
 
 class Substitution(models.Model):
+    MODE_CHOICES = [
+        ("user", "Basée sur l’utilisateur"),
+        ("game", "Basée sur le jeu"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending", "En attente"),
+        ("accepted", "Acceptée"),
+        ("rejected", "Refusée"),
+    ]
+
     user_id = models.UUIDField()  # UUID de l'utilisateur Supabase
     source_game = models.ForeignKey(Game, related_name='source_substitutions', on_delete=models.CASCADE)
     substitute_game = models.ForeignKey(Game, related_name='substitute_substitutions', on_delete=models.CASCADE)
+    
     justification = models.TextField(blank=True, null=True)
     similarity_score = models.FloatField(blank=True, null=True)
+    mode = models.CharField(max_length=10, choices=MODE_CHOICES, default="game")  
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending") 
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'substitutions'
-        unique_together = ('user_id', 'source_game', 'substitute_game')
+        unique_together = ('user_id', 'source_game', 'substitute_game', 'mode') 
 
     def __str__(self):
-        return f"{self.source_game.name} -> {self.substitute_game.name} (User: {self.user_id})"
+        return f"[{self.mode}] {self.source_game.name} -> {self.substitute_game.name} ({self.status})"
 
 
 class UserGame(models.Model):

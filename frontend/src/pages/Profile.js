@@ -4,19 +4,17 @@ import { useSnackbar } from '../contexts/SnackbarContext';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/api';
 import GameCard from '../components/GameCard';
-import { 
-  UserCircle, 
-  Edit3, 
-  Save, 
-  X, 
-  Star, 
-  Library, 
+import ProfileRecommendationsButton from '../components/ProfileRecommendationsButton';
+import {
+  UserCircle,
+  Edit3,
+  Save,
+  X,
+  Star,
+  Library,
   Calendar,
   Mail,
-  GamepadIcon,
-  BookmarkIcon,
   TrophyIcon,
-  ClockIcon
 } from 'lucide-react';
 
 const Profile = () => {
@@ -35,6 +33,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [favoriteGames, setFavoriteGames] = useState([]);
   const [libraryGames, setLibraryGames] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [stats, setStats] = useState({
     total_substitutes: 0,
     total_library: 0,
@@ -56,7 +55,6 @@ const Profile = () => {
 
       setLoading(true);
       try {
-        // Charger les données de base du profil
         const profileResponse = await ApiService.getUserProfile();
         setProfileData({
           display_name: profileResponse.display_name || user?.email?.split('@')[0] || 'Utilisateur',
@@ -65,18 +63,21 @@ const Profile = () => {
           created_at: profileResponse.created_at || user?.created_at
         });
 
-        // Charger les statistiques
         const statsResponse = await ApiService.getUserStats();
         setStats(statsResponse);
 
-        // Charger les jeux favoris (substituts sauvegardés)
-        const favoritesResponse = await ApiService.getUserSubstitutes();
-        setFavoriteGames(favoritesResponse.results?.slice(0, 6) || []);
+        // Favoris et bibliothèque : structure userGame.game
+        const favoritesResponse = await ApiService.getFavoriteGames();
+        setFavoriteGames(favoritesResponse.results || favoritesResponse || []);
 
-        // Charger la bibliothèque
-        const libraryResponse = await ApiService.getUserLibrary();
-        setLibraryGames(libraryResponse.results?.slice(0, 6) || []);
+        const libraryResponse = await ApiService.getMyLibraryGames();
+        setLibraryGames(libraryResponse.results || libraryResponse || []);
 
+        // Recommandations : structure userGame.game (adapte si besoin)
+        if (ApiService.getUserRecommendations) {
+          const recommendationsResponse = await ApiService.getUserRecommendations();
+          setRecommendations(recommendationsResponse.results || recommendationsResponse || []);
+        }
       } catch (error) {
         console.error('Erreur lors du chargement du profil:', error);
         showError('Erreur lors du chargement du profil');
@@ -104,7 +105,6 @@ const Profile = () => {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    // Recharger les données d'origine
     window.location.reload();
   };
 
@@ -117,10 +117,7 @@ const Profile = () => {
     });
   };
 
-  if (!isAuthenticated) {
-    return null; // Évite le flash avant la redirection
-  }
-
+  if (!isAuthenticated) return null;
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -180,7 +177,6 @@ const Profile = () => {
               <div className="text-2xl font-bold text-gray-900">{stats.total_substitutes}</div>
               <div className="text-sm text-gray-500">Substituts sauvegardés</div>
             </div>
-            
             <div className="bg-white rounded-lg p-4 text-center">
               <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-3">
                 <Library className="w-6 h-6 text-green-600" />
@@ -188,7 +184,6 @@ const Profile = () => {
               <div className="text-2xl font-bold text-gray-900">{stats.total_library}</div>
               <div className="text-sm text-gray-500">Jeux en bibliothèque</div>
             </div>
-            
             <div className="bg-white rounded-lg p-4 text-center">
               <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-3">
                 <TrophyIcon className="w-6 h-6 text-purple-600" />
@@ -199,186 +194,112 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Informations personnelles */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <UserCircle className="w-5 h-5 mr-2 text-primary-600" />
-                  Informations personnelles
-                </h2>
-                {isEditing && (
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={handleSaveProfile}
-                      disabled={saving}
-                      className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
-                    >
-                      <Save className="w-4 h-4" />
-                      <span>{saving ? 'Sauvegarde...' : 'Sauvegarder'}</span>
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="flex items-center space-x-1 px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
-                    >
-                      <X className="w-4 h-4" />
-                      <span>Annuler</span>
-                    </button>
-                  </div>
-                )}
+        {/* Section Bio / Edition */}
+        {isEditing && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Pseudo</label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  value={profileData.display_name}
+                  onChange={(e) => setProfileData({ ...profileData, display_name: e.target.value })}
+                />
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom d'affichage
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={profileData.display_name}
-                      onChange={(e) => setProfileData({...profileData, display_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Votre nom d'affichage"
-                    />
-                  ) : (
-                    <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                      {profileData.display_name}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  {isEditing ? (
-                    <textarea
-                      value={profileData.bio}
-                      onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Parlez-nous de vous et de vos goûts en matière de jeux..."
-                    />
-                  ) : (
-                    <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[100px]">
-                      {profileData.bio || 'Aucune description renseignée.'}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Genre préféré
-                  </label>
-                  {isEditing ? (
-                    <select
-                      value={profileData.favorite_genre}
-                      onChange={(e) => setProfileData({...profileData, favorite_genre: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    >
-                      <option value="">Sélectionner un genre</option>
-                      <option value="Action">Action</option>
-                      <option value="Adventure">Aventure</option>
-                      <option value="RPG">RPG</option>
-                      <option value="Strategy">Stratégie</option>
-                      <option value="Simulation">Simulation</option>
-                      <option value="Sports">Sports</option>
-                      <option value="Racing">Course</option>
-                      <option value="Fighting">Combat</option>
-                      <option value="Shooter">FPS/TPS</option>
-                      <option value="Puzzle">Puzzle</option>
-                      <option value="Horror">Horreur</option>
-                      <option value="Indie">Indépendant</option>
-                    </select>
-                  ) : (
-                    <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                      {profileData.favorite_genre || 'Non spécifié'}
-                    </p>
-                  )}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Bio</label>
+                <textarea
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  value={profileData.bio}
+                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Genre préféré</label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  value={profileData.favorite_genre}
+                  onChange={(e) => setProfileData({ ...profileData, favorite_genre: e.target.value })}
+                />
+              </div>
+              <div className="flex space-x-4 mt-4">
+                <button
+                  onClick={handleSaveProfile}
+                  className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  disabled={saving}
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{saving ? 'Sauvegarde...' : 'Sauvegarder'}</span>
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Annuler</span>
+                </button>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Jeux favoris et bibliothèque */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Substituts favoris */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Star className="w-5 h-5 mr-2 text-primary-600" />
-                  Mes Substituts Favoris
-                  <span className="ml-2 px-2 py-1 bg-primary-100 text-primary-800 text-sm font-medium rounded-full">
-                    {stats.total_substitutes}
-                  </span>
-                </h2>
-                <button
-                  onClick={() => navigate('/my-substitutes')}
-                  className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                >
-                  Voir tout →
-                </button>
-              </div>
+        {/* Favoris */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <Star className="w-5 h-5 mr-2 text-primary-600" />
+              Mes Substituts Favoris
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {favoriteGames.length > 0 ? (
+              favoriteGames.map((userGame) => (
+                <GameCard key={userGame.id} game={userGame.game} />
+              ))
+            ) : (
+              <p className="text-gray-500 col-span-full">Aucun jeu favori pour le moment.</p>
+            )}
+          </div>
+        </div>
 
-              {favoriteGames.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {favoriteGames.map((game) => (
-                    <GameCard key={game.id} game={game} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <BookmarkIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Aucun substitut sauvegardé pour le moment.</p>
-                  <button
-                    onClick={() => navigate('/')}
-                    className="mt-4 btn-primary"
-                  >
-                    Découvrir des jeux
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* Bibliothèque */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <Library className="w-5 h-5 mr-2 text-primary-600" />
+              Ma Bibliothèque
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {libraryGames.length > 0 ? (
+              libraryGames.map((userGame) => (
+                <GameCard key={userGame.id} game={userGame.game} />
+              ))
+            ) : (
+              <p className="text-gray-500 col-span-full">Votre bibliothèque est vide.</p>
+            )}
+          </div>
+        </div>
 
-            {/* Bibliothèque */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Library className="w-5 h-5 mr-2 text-primary-600" />
-                  Ma Bibliothèque
-                  <span className="ml-2 px-2 py-1 bg-primary-100 text-primary-800 text-sm font-medium rounded-full">
-                    {stats.total_library}
-                  </span>
-                </h2>
-                <button
-                  onClick={() => navigate('/my-library')}
-                  className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                >
-                  Voir tout →
-                </button>
-              </div>
-
-              {libraryGames.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {libraryGames.map((game) => (
-                    <GameCard key={game.id} game={game} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <GamepadIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Votre bibliothèque est vide.</p>
-                  <button
-                    onClick={() => navigate('/')}
-                    className="mt-4 btn-primary"
-                  >
-                    Ajouter des jeux
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* Recommandations */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <Star className="w-5 h-5 mr-2 text-primary-600" />
+              Recommandations pour vous
+            </h2>
+            <ProfileRecommendationsButton />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {recommendations.length > 0 ? (
+              recommendations.map((userGame) => (
+                <GameCard key={userGame.id} game={userGame.game} />
+              ))
+            ) : (
+              <p className="text-gray-500 col-span-full">Aucune recommandation pour le moment.</p>
+            )}
           </div>
         </div>
       </div>

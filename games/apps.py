@@ -6,4 +6,4 @@ class GamesConfig(AppConfig):
     name = 'games'
     
     def ready(self):
-        import games.signals  # Active les signaux pour la gestion du cache
+        import games.signals

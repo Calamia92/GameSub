@@ -9,11 +9,12 @@ urlpatterns = [
     path('games/<int:pk>/', views.GameDetailView.as_view(), name='game-detail'),
     path('search/', views.search_games_api, name='search-games'),
     path('substitutes/<int:game_id>/', views.get_game_substitutes, name='game-substitutes'),
-    
+
     # User Games & Substitutes
     path('my-substitutes/', views.SubstitutionListCreateView.as_view(), name='my-substitutes'),
     path('my-games/', views.UserGameListCreateView.as_view(), name='my-games'),
-    
+    path('substitutes_library_fav/', views.get_library_recommendations, name='library-recommendations'),
+
     # Search History
     path('my-search-history/', views.SearchHistoryListView.as_view(), name='my-search-history'),
     

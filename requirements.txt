@@ -5,7 +5,7 @@ psycopg2-binary>=2.9.0
 requests==2.32.4
 python-decouple==3.8
 
-# JWT pour Supabase (OBLIGATOIRE)
+# JWT pour Supabase
 pyjwt==2.8.0
 cryptography==44.0.1
 
@@ -15,3 +15,11 @@ redis==5.0.1
 
 # Utilitaires pour RAWG API
 python-slugify==8.0.1
+
+# NLP embeddings
+huggingface-hub
+sentence-transformers
+numpy
+
+# PGVector pour Django (official package)
+pgvector
