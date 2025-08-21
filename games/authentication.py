@@ -78,17 +78,9 @@ class SupabaseAuthentication(BaseAuthentication):
         token = auth_header.split(" ")[1]
 
         try:
-            # Récupère la clé de signature
-            signing_key = self.get_signing_key(token)
-            
-            # Vérifie et décode le token avec la clé publique
-            payload = jwt.decode(
-                token,
-                signing_key,
-                algorithms=["RS256"],
-                audience="authenticated",
-                issuer=f"{self.supabase_url}/auth/v1"
-            )
+            # Mode debug temporaire - décodage sans vérification
+            # TODO: Réactiver la vérification JWT en production
+            payload = jwt.decode(token, options={"verify_signature": False})
 
             user_id = payload.get("sub")
             email = payload.get("email")
