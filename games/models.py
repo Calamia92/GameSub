@@ -113,3 +113,7 @@ class UserLibrary(models.Model):
 
     def get_games_count(self):
         return UserGame.objects.filter(user_id=self.user_id, status='library').count()
+
+
+# Import du profil utilisateur à la fin pour éviter les imports circulaires
+from .models_profile import UserProfile

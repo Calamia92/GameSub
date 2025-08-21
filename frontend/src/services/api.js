@@ -136,6 +136,27 @@ class ApiService {
   async getMyLibraryGames() {
     return this.getUserGames('library');
   }
+
+  // Nouvelles méthodes pour le profil utilisateur
+  async getUserProfile() {
+    const response = await this.axios.get('/profile/');
+    return response.data;
+  }
+
+  async updateUserProfile(profileData) {
+    const response = await this.axios.patch('/profile/', profileData);
+    return response.data;
+  }
+
+  async getUserStats() {
+    const response = await this.axios.get('/profile/stats/');
+    return response.data;
+  }
+
+  // Méthodes aliasées pour une meilleure clarté
+  async getUserLibrary() {
+    return this.getMyLibraryGames();
+  }
 }
 
 const apiService = new ApiService();

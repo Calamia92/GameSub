@@ -4,11 +4,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from .models import Game, Substitution, UserGame, SearchHistory, UserLibrary
+from .models_profile import UserProfile
 from django.db.models import Prefetch, Count
 from django.core.cache import cache
 from django.utils import timezone
 from datetime import timedelta
 from decouple import config
+from django.contrib.auth.models import User
 from .serializers import (
     GameSerializer, GameSearchSerializer, SubstitutionSerializer,
     SubstitutionCreateSerializer, UserGameSerializer, UserGameCreateSerializer,
@@ -349,3 +351,100 @@ def add_game_from_api(request):
         'added_to_library': add_to_library,
         'message': f"Game '{game.name}' successfully added" + (" to library" if add_to_library else "")
     })
+
+
+# -------------------------------
+# Profile Management
+# -------------------------------
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    """
+    GET: Récupère le profil utilisateur
+    PATCH: Met à jour le profil utilisateur
+    """
+    # Avec Supabase, request.user est un SupabaseUser, pas un User Django
+    user_auth = request.user
+    user_id = user_auth.id if hasattr(user_auth, 'id') else user_auth.user_id
+    user_email = user_auth.email if hasattr(user_auth, 'email') else 'unknown@example.com'
+    
+    if request.method == 'GET':
+        # Cache le profil pour optimiser les performances
+        cache_key = f"profile_{user_id}"
+        profile_data = cache.get(cache_key)
+        
+        if profile_data is None:
+            # Pour Supabase, on simule un profil sans base de données pour l'instant
+            profile_data = {
+                'user_id': user_id,
+                'email': user_email,
+                'display_name': user_email.split('@')[0] if user_email else 'Utilisateur',
+                'bio': '',
+                'favorite_genre': '',
+                'created_at': timezone.now().isoformat(),
+            }
+            cache.set(cache_key, profile_data, timeout=config('CACHE_TTL_USER_GAMES', default=60, cast=int))
+        
+        return Response(profile_data)
+    
+    elif request.method == 'PATCH':
+        # Pour l'instant, on simule la mise à jour
+        display_name = request.data.get('display_name')
+        bio = request.data.get('bio')
+        favorite_genre = request.data.get('favorite_genre')
+        
+        # Simulation de la sauvegarde dans le cache
+        cache_key = f"profile_{user_id}"
+        profile_data = {
+            'user_id': user_id,
+            'email': user_email,
+            'display_name': display_name or user_email.split('@')[0],
+            'bio': bio or '',
+            'favorite_genre': favorite_genre or '',
+            'created_at': timezone.now().isoformat(),
+        }
+        
+        # Sauvegarder dans le cache
+        cache.set(cache_key, profile_data, timeout=config('CACHE_TTL_USER_GAMES', default=60, cast=int))
+        
+        return Response({
+            'message': 'Profil mis à jour avec succès',
+            'display_name': profile_data['display_name'],
+            'bio': profile_data['bio'],
+            'favorite_genre': profile_data['favorite_genre'],
+        })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_stats(request):
+    """
+    Récupère les statistiques de l'utilisateur
+    """
+    user_auth = request.user
+    user_id = user_auth.id if hasattr(user_auth, 'id') else user_auth.user_id
+    
+    # Cache les statistiques
+    cache_key = f"stats_{user_id}"
+    stats = cache.get(cache_key)
+    
+    if stats is None:
+        # Compter les substituts sauvegardés
+        total_substitutes = Substitution.objects.filter(user_id=user_id).count()
+        
+        # Compter les jeux en bibliothèque
+        total_library = UserGame.objects.filter(user_id=user_id).count()
+        
+        # Compter les recherches effectuées
+        total_searches = SearchHistory.objects.filter(user_id=user_id).count()
+        
+        stats = {
+            'total_substitutes': total_substitutes,
+            'total_library': total_library,
+            'total_searches': total_searches,
+        }
+        
+        # Cache pendant 5 minutes
+        cache.set(cache_key, stats, timeout=300)
+    
+    return Response(stats)

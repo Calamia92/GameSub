@@ -24,4 +24,8 @@ urlpatterns = [
     
     # Add games from API
     path('add-game-from-api/', views.add_game_from_api, name='add-game-from-api'),
+    
+    # Profile Management
+    path('profile/', views.user_profile, name='user-profile'),
+    path('profile/stats/', views.user_stats, name='user-stats'),
 ]
