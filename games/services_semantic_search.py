@@ -56,6 +56,7 @@ def _postgresql_semantic_search(query_embedding: np.ndarray, limit: int, min_sim
                        1 - (embedding <=> %s::vector) as similarity_score
                 FROM games 
                 WHERE embedding IS NOT NULL 
+                  AND rating > 0
                   AND 1 - (embedding <=> %s::vector) >= %s
                 ORDER BY similarity_score DESC
                 LIMIT %s
@@ -97,8 +98,8 @@ def _sqlite_semantic_search(query_embedding: np.ndarray, limit: int, min_similar
     Recherche sémantique pour SQLite (fallback moins optimisé)
     """
     try:
-        # Récupérer tous les jeux avec embeddings
-        games_with_embeddings = Game.objects.exclude(embedding__isnull=True)
+        # Récupérer tous les jeux avec embeddings et rating > 0
+        games_with_embeddings = Game.objects.exclude(embedding__isnull=True).filter(rating__gt=0)
         
         similarities = []
         

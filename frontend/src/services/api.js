@@ -213,6 +213,31 @@ class ApiService {
     return response.data;
   }
 
+  // 🚀 NOUVEAU : Filtres IA Adaptatifs - Révolution UX
+  
+  async getAIFilterOptions() {
+    const response = await this.axios.get('/ai-filters/options/');
+    return response.data;
+  }
+
+  async aiAdaptiveSearch(query, aiFilters = {}, limit = 20) {
+    const response = await this.axios.post('/search/ai-adaptive/', {
+      query,
+      ai_filters: aiFilters,
+      limit,
+      min_similarity: 0.3
+    });
+    return response.data;
+  }
+
+  async debugAIFilters(gameId, aiFilters = {}) {
+    const response = await this.axios.post('/debug/ai-filters/', {
+      game_id: gameId,
+      ai_filters: aiFilters
+    });
+    return response.data;
+  }
+
   // Méthodes aliasées pour une meilleure clarté
   async getUserLibrary() {
     return this.getMyLibraryGames();

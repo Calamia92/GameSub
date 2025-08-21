@@ -12,6 +12,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import ApiService from '../services/api';
+import AIFilters from './AIFilters';
 
 const UnifiedSearch = ({ onResults, className = '' }) => {
   const [query, setQuery] = useState('');
@@ -30,6 +31,10 @@ const UnifiedSearch = ({ onResults, className = '' }) => {
     rating: '',
     ordering: ''
   });
+  
+  // 🚀 État pour les filtres IA adaptatifs
+  const [aiFilters, setAiFilters] = useState({});
+  const [showAIFilters, setShowAIFilters] = useState(false);
   
   const searchTimeout = useRef(null);
   const suggestionsRef = useRef(null);
@@ -138,8 +143,16 @@ const UnifiedSearch = ({ onResults, className = '' }) => {
       let response;
       
       if (isAIMode) {
-        // Recherche IA (ignore les filtres classiques sauf limit)
-        response = await ApiService.hybridSearch(searchQuery, 20 * page);
+        // 🚀 Recherche IA avec filtres adaptatifs
+        const hasAIFilters = Object.keys(aiFilters).length > 0;
+        
+        if (hasAIFilters) {
+          // Recherche IA avec filtres adaptatifs (nouvelle méthode révolutionnaire)
+          response = await ApiService.aiAdaptiveSearch(searchQuery, aiFilters, 20);
+        } else {
+          // Recherche IA hybride classique (ancien comportement)
+          response = await ApiService.hybridSearch(searchQuery, 20 * page);
+        }
       } else {
         // Recherche classique avec filtres
         response = await ApiService.searchGames(searchQuery, page, filters);
@@ -218,7 +231,32 @@ const UnifiedSearch = ({ onResults, className = '' }) => {
     }
   };
 
+  // 🚀 Gestionnaires pour les filtres IA adaptatifs
+  const handleAIFiltersChange = (newAIFilters) => {
+    setAiFilters(newAIFilters);
+    
+    // Relancer la recherche automatiquement si on a une requête et qu'on est en mode IA
+    if (query.trim() && isAIMode) {
+      setCurrentPage(1);
+      setTimeout(() => handleSearch(1), 100);
+    }
+  };
+
+  const clearAIFilters = () => {
+    setAiFilters({});
+    
+    if (query.trim() && isAIMode) {
+      setCurrentPage(1);
+      setTimeout(() => handleSearch(1), 100);
+    }
+  };
+
+  const toggleAIFilters = () => {
+    setShowAIFilters(!showAIFilters);
+  };
+
   const hasActiveFilters = Object.values(filters).some(filter => filter !== '');
+  const hasActiveAIFilters = Object.keys(aiFilters).length > 0;
 
   return (
     <div className={`relative ${className}`}>
@@ -277,8 +315,29 @@ const UnifiedSearch = ({ onResults, className = '' }) => {
             </button>
           </div>
 
-          {/* Bouton Filtres (masqué en mode IA) */}
-          {!isAIMode && (
+          {/* Bouton filtres adaptatif selon le mode */}
+          {isAIMode ? (
+            // 🚀 Bouton Filtres IA Adaptatifs (Mode IA)
+            <button
+              type="button"
+              onClick={toggleAIFilters}
+              className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
+                showAIFilters || hasActiveAIFilters
+                  ? 'bg-purple-100 text-purple-700 border-2 border-purple-300'
+                  : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-2 border-purple-200'
+              }`}
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>Filtres IA</span>
+              {hasActiveAIFilters && (
+                <span className="bg-purple-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                  {Object.keys(aiFilters).length}
+                </span>
+              )}
+              {showAIFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          ) : (
+            // Bouton Filtres Classiques (Mode Classique)
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
@@ -474,6 +533,17 @@ const UnifiedSearch = ({ onResults, className = '' }) => {
             </div>
           )}
         </div>
+      )}
+
+      {/* 🚀 Filtres IA Adaptatifs - Révolution UX */}
+      {isAIMode && (
+        <AIFilters
+          filters={aiFilters}
+          onFiltersChange={handleAIFiltersChange}
+          onClear={clearAIFilters}
+          isVisible={showAIFilters}
+          onToggle={toggleAIFilters}
+        />
       )}
     </div>
   );

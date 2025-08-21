@@ -40,4 +40,9 @@ urlpatterns = [
     path('search/hybrid/', views.hybrid_search_endpoint, name='hybrid-search'),
     path('search/suggestions/', views.search_suggestions_endpoint, name='search-suggestions'),
     path('search/compare/', views.search_compare_endpoint, name='search-compare'),
+    
+    # 🚀 AI Adaptive Filters (Revolutionary UX)
+    path('search/ai-adaptive/', views.ai_adaptive_search_endpoint, name='ai-adaptive-search'),
+    path('ai-filters/options/', views.ai_filter_options_endpoint, name='ai-filter-options'),
+    path('debug/ai-filters/', views.debug_ai_filters_endpoint, name='debug-ai-filters'),
 ]

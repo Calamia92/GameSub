@@ -50,6 +50,10 @@ class RAWGAPIService:
             
         return self._make_request('games', params)
 
+    def search_games_raw(self, params):
+        """Raw search with custom parameters for mass import"""
+        return self._make_request('games', params)
+
     def get_game_details(self, game_id):
         return self._make_request(f'games/{game_id}')
 

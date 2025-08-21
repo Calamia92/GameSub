@@ -16,6 +16,7 @@ def cosine_similarity_sql(target_embedding: List[float], limit: int = 10) -> str
                    (embedding <=> %s::vector) as distance
             FROM games 
             WHERE embedding IS NOT NULL
+              AND rating > 0
             ORDER BY distance ASC
             LIMIT %s
         """
@@ -26,6 +27,7 @@ def cosine_similarity_sql(target_embedding: List[float], limit: int = 10) -> str
                json_array_length(embedding) as emb_length
         FROM games 
         WHERE embedding IS NOT NULL
+          AND rating > 0
         ORDER BY RANDOM()
         LIMIT %s
     """
@@ -45,10 +47,11 @@ def get_recommendations_for_user(user_id: str, limit: int = 10) -> List[dict]:
         # Si pas de favoris, recommander les jeux les mieux notés
         return get_top_rated_games(limit)
     
-    # Récupérer les embeddings des favoris
+    # Récupérer les embeddings des favoris (uniquement ceux avec rating > 0)
     favorite_games = Game.objects.filter(
         id__in=user_favorites, 
-        embedding__isnull=False
+        embedding__isnull=False,
+        rating__gt=0
     )
     
     if not favorite_games:
@@ -143,7 +146,7 @@ def get_top_rated_games(limit: int = 10) -> List[dict]:
     Retourne les jeux les mieux notés comme fallback.
     """
     games = Game.objects.filter(
-        rating__isnull=False
+        rating__gt=0
     ).order_by('-rating')[:limit]
     
     return [{

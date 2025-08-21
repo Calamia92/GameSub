@@ -10,6 +10,10 @@ from django.core.cache import cache
 from django.utils import timezone
 from datetime import timedelta
 from decouple import config
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 from .serializers import (
     GameSerializer, GameSearchSerializer, SubstitutionSerializer,
     SubstitutionCreateSerializer, UserGameSerializer, UserGameCreateSerializer,
@@ -27,6 +31,10 @@ from .services_semantic_search import (
     semantic_search_games,
     hybrid_search_games,
     get_search_suggestions
+)
+from .services_ai_filters import (
+    ai_search_with_adaptive_filters,
+    get_ai_filter_options
 )
 
 # -------------------------------
@@ -99,8 +107,19 @@ def search_games_api(request):
     if not results:
         return Response({'error': 'API request failed'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     
+    # Sauvegarder les jeux dans la base et filtrer ceux avec rating > 0
+    filtered_results = []
     for game_data in results.get('results', []):
-        rawg_service.save_game_to_db(game_data)
+        # Sauvegarder le jeu
+        game = rawg_service.save_game_to_db(game_data)
+        
+        # Garder seulement si rating >= 3.0 (qualité minimum)
+        if game and game.rating and game.rating >= 3.0:
+            filtered_results.append(game_data)
+    
+    # Mettre à jour les résultats avec la version filtrée
+    results['results'] = filtered_results
+    results['count'] = len(filtered_results)
     
     # Enregistrer la recherche dans l'historique si l'utilisateur est connecté
     if request.user.is_authenticated:
@@ -745,3 +764,126 @@ def search_compare_endpoint(request):
             'ai_advantage': len(semantic_results) > len(rawg_results.get('results', []))
         }
     })
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def ai_adaptive_search_endpoint(request):
+    """
+    🚀 NOUVEAU : Recherche IA avec filtres adaptatifs
+    Révolution UX - Filtres naturels basés sur l'intention humaine
+    """
+    try:
+        data = request.data
+        query = data.get('query', '').strip()
+        
+        if not query:
+            return Response({'error': 'Query is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Récupération des filtres IA
+        ai_filters = data.get('ai_filters', {})
+        limit = int(data.get('limit', 20))
+        min_similarity = float(data.get('min_similarity', 0.3))
+        
+        logger.info(f"[AI ADAPTIVE SEARCH] Query: '{query}', Filters: {ai_filters}")
+        
+        # Cache intelligent basé sur query + filtres
+        cache_key = f"ai_adaptive_{hash(f'{query}_{str(sorted(ai_filters.items()))}_{limit}')}"
+        results = cache.get(cache_key)
+        
+        if results is None:
+            # Recherche avec filtres IA adaptatifs
+            results = ai_search_with_adaptive_filters(
+                query=query,
+                ai_filters=ai_filters,
+                limit=limit,
+                min_similarity=min_similarity
+            )
+            
+            # Cache pendant 45 minutes (entre sémantique et hybride)
+            cache.set(cache_key, results, timeout=2700)
+        
+        return Response({
+            'query': query,
+            'ai_filters': ai_filters,
+            'results': results,
+            'count': len(results),
+            'search_type': 'ai_adaptive',
+            'message': f"🧠 Recherche IA adaptative avec {len(ai_filters)} filtres"
+        })
+        
+    except Exception as e:
+        logger.error(f"[AI ADAPTIVE SEARCH] Erreur: {e}")
+        return Response({
+            'error': 'Erreur interne de recherche IA',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def ai_filter_options_endpoint(request):
+    """
+    Retourne les options de filtres IA disponibles pour le frontend
+    """
+    try:
+        options = get_ai_filter_options()
+        
+        return Response({
+            'filter_categories': list(options.keys()),
+            'filters': options,
+            'message': '🎯 Filtres IA adaptatifs disponibles'
+        })
+        
+    except Exception as e:
+        logger.error(f"[AI FILTER OPTIONS] Erreur: {e}")
+        return Response({
+            'error': 'Erreur récupération options filtres',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# Debug endpoint pour tester les mappings
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def debug_ai_filters_endpoint(request):
+    """
+    🔧 DEBUG : Teste les mappings sémantiques
+    """
+    if not settings.DEBUG:
+        return Response({'error': 'Debug mode only'}, status=status.HTTP_403_FORBIDDEN)
+    
+    try:
+        data = request.data
+        game_id = data.get('game_id')
+        ai_filters = data.get('ai_filters', {})
+        
+        if not game_id:
+            return Response({'error': 'game_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        game = Game.objects.get(id=game_id)
+        
+        from .services_ai_filters import calculate_ai_filter_score
+        
+        score_multiplier = calculate_ai_filter_score(game, ai_filters)
+        
+        return Response({
+            'game': {
+                'id': game.id,
+                'name': game.name,
+                'genres': game.genres,
+                'tags': game.tags,
+                'playtime': game.playtime
+            },
+            'ai_filters': ai_filters,
+            'score_multiplier': score_multiplier,
+            'explanation': f"Score multiplié par {score_multiplier:.2f}"
+        })
+        
+    except Game.DoesNotExist:
+        return Response({'error': 'Game not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': 'Debug error',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -8,6 +8,12 @@ except ImportError:
     # Fallback pour SQLite - utiliser JSONField
     VectorField = models.JSONField
 
+
+class QualityGameManager(models.Manager):
+    """Manager qui exclut automatiquement les jeux avec rating = 0"""
+    def get_queryset(self):
+        return super().get_queryset().filter(rating__gt=0)
+
 class Game(models.Model):
     external_id = models.IntegerField(unique=True)
     name = models.CharField(max_length=255)
@@ -28,6 +34,10 @@ class Game(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     # Embedding vector - utilise pgvector si disponible, sinon JSONField
     embedding = VectorField(dimensions=384, null=True) if HAS_PGVECTOR else models.JSONField(null=True, blank=True)
+
+    # Managers
+    objects = models.Manager()  # Manager par défaut (inclut tous les jeux)
+    quality = QualityGameManager()  # Manager qui exclut rating = 0
 
     class Meta:
         db_table = 'games'
