@@ -175,6 +175,7 @@ CORS_ALLOWED_HEADERS = [
 # =========================
 SUPABASE_URL = config("SUPABASE_URL", default="")
 SUPABASE_ANON_KEY = config("SUPABASE_ANON_KEY", default="")
+SUPABASE_JWT_SECRET = config("SUPABASE_JWT_SECRET", default="")
 
 if not SUPABASE_URL and not DEBUG:
     raise ValueError("SUPABASE_URL environment variable is required in production")
