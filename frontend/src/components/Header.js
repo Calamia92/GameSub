@@ -10,8 +10,7 @@ import {
   Library,
   History,
   Star,
-  UserCircle,
-  Brain
+  UserCircle
 } from 'lucide-react';
 
 const Header = () => {
@@ -37,7 +36,6 @@ const Header = () => {
 
   const navigationItems = [
     { path: '/', label: 'Recherche', icon: Search },
-    { path: '/smart-search', label: 'Recherche IA', icon: Brain },
     ...(isAuthenticated ? [
       { path: '/my-substitutes', label: 'Mes Substituts', icon: Star },
       { path: '/my-library', label: 'Ma Bibliothèque', icon: Library },

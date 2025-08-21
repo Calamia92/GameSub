@@ -1,5 +1,5 @@
 import React from 'react';
-import { XIcon } from 'lucide-react';
+import { X } from 'lucide-react';
 
 const SearchFilters = ({ filters, onChange, onClear }) => {
   // Genres populaires
@@ -162,7 +162,7 @@ const SearchFilters = ({ filters, onChange, onClear }) => {
             onClick={onClear}
             className="flex items-center space-x-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors ml-auto"
           >
-            <XIcon className="w-4 h-4" />
+            <X className="w-4 h-4" />
             <span>Effacer</span>
           </button>
         )}

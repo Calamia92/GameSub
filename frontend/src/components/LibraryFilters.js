@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  FilterIcon, 
-  XIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  StarIcon,
-  TagIcon,
-  GamepadIcon,
-  CalendarIcon,
-  TrophyIcon
+  Filter, 
+  X,
+  ChevronDown,
+  ChevronUp,
+  Star,
+  Tag,
+  Gamepad2,
+  Calendar,
+  Trophy
 } from 'lucide-react';
 
 const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
@@ -124,9 +124,9 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
           <span className="text-sm font-medium text-gray-700">{title}</span>
         </div>
         {expandedSections[section] ? (
-          <ChevronUpIcon className="w-4 h-4 text-gray-400" />
+          <ChevronUp className="w-4 h-4 text-gray-400" />
         ) : (
-          <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-gray-400" />
         )}
       </button>
       {expandedSections[section] && (
@@ -163,7 +163,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
           : 'hover:bg-gray-50 text-gray-700'
       }`}
     >
-      <StarIcon className={`w-4 h-4 ${
+      <Star className={`w-4 h-4 ${
         filters.minRating === rating ? 'text-primary-500' : 'text-gray-400'
       }`} />
       <span className="text-sm">{label}</span>
@@ -198,7 +198,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <FilterIcon className="w-5 h-5 text-gray-500" />
+          <Filter className="w-5 h-5 text-gray-500" />
           <h3 className="text-lg font-semibold text-gray-900">Filtres</h3>
         </div>
         {hasActiveFilters() && (
@@ -206,7 +206,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
             onClick={onClear}
             className="flex items-center space-x-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-md transition-colors"
           >
-            <XIcon className="w-4 h-4" />
+            <X className="w-4 h-4" />
             <span>Effacer</span>
           </button>
         )}
@@ -214,7 +214,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
 
       <div className="space-y-4">
         {/* Genres */}
-        <FilterSection title="Genres" icon={TagIcon} section="genres">
+        <FilterSection title="Genres" icon={Tag} section="genres">
           <div className="max-h-48 overflow-y-auto space-y-1">
             {availableGenres.map(genre => (
               <CheckboxOption
@@ -229,7 +229,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
         </FilterSection>
 
         {/* Plateformes */}
-        <FilterSection title="Plateformes" icon={GamepadIcon} section="platforms">
+        <FilterSection title="Plateformes" icon={Gamepad2} section="platforms">
           <div className="max-h-48 overflow-y-auto space-y-1">
             {availablePlatforms.map(platform => (
               <CheckboxOption
@@ -244,7 +244,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
         </FilterSection>
 
         {/* Note minimale */}
-        <FilterSection title="Note minimale" icon={StarIcon} section="ratings">
+        <FilterSection title="Note minimale" icon={Star} section="ratings">
           <div className="space-y-1">
             <RatingOption rating={4.5} label="4.5+ ⭐⭐⭐⭐⭐" />
             <RatingOption rating={4.0} label="4.0+ ⭐⭐⭐⭐" />
@@ -255,7 +255,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
         </FilterSection>
 
         {/* Années */}
-        <FilterSection title="Année de sortie" icon={CalendarIcon} section="years">
+        <FilterSection title="Année de sortie" icon={Calendar} section="years">
           <div className="max-h-48 overflow-y-auto space-y-1">
             {availableYears.map(year => {
               const count = games.filter(userGame => 
@@ -275,7 +275,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
         </FilterSection>
 
         {/* Score Metacritic */}
-        <FilterSection title="Score Metacritic" icon={TrophyIcon} section="metacritic">
+        <FilterSection title="Score Metacritic" icon={Trophy} section="metacritic">
           <div className="space-y-1">
             {[90, 80, 70, 60, 50].map(score => (
               <button
@@ -287,7 +287,7 @@ const LibraryFilters = ({ games, filters, onFiltersChange, onClear }) => {
                     : 'hover:bg-gray-50 text-gray-700'
                 }`}
               >
-                <TrophyIcon className={`w-4 h-4 ${
+                <Trophy className={`w-4 h-4 ${
                   filters.minMetacritic === score ? 'text-primary-500' : 'text-gray-400'
                 }`} />
                 <span className="text-sm">{score}+ points</span>

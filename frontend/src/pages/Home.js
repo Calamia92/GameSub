@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import GameCard from '../components/GameCard';
 import UnifiedSearch from '../components/UnifiedSearch';
 import { 
-  SparklesIcon,
   Search,
   Brain,
-  GamepadIcon
+  Gamepad2
 } from 'lucide-react';
 
 const Home = () => {
@@ -25,7 +24,7 @@ const Home = () => {
       <div className="space-y-4">
         <div className="flex justify-center mb-4">
           <div className="bg-primary-100 p-4 rounded-full">
-            <SparklesIcon className="w-12 h-12 text-primary-600" />
+            <Search className="w-12 h-12 text-primary-600" />
           </div>
         </div>
         <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
@@ -180,7 +179,7 @@ const Home = () => {
 
             <div className="space-y-4">
               <div className="bg-primary-100 p-3 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
-                <GamepadIcon className="w-8 h-8 text-primary-600" />
+                <Gamepad2 className="w-8 h-8 text-primary-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Découvrez</h3>
               <p className="text-gray-600 text-sm">

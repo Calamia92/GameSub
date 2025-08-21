@@ -5,12 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from .models import Game, Substitution, UserGame, SearchHistory, UserLibrary
 from .models_profile import UserProfile
-from django.db.models import Prefetch, Count
+from django.db.models import Count
 from django.core.cache import cache
 from django.utils import timezone
 from datetime import timedelta
 from decouple import config
-from django.contrib.auth.models import User
 from .serializers import (
     GameSerializer, GameSearchSerializer, SubstitutionSerializer,
     SubstitutionCreateSerializer, UserGameSerializer, UserGameCreateSerializer,

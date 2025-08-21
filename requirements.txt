@@ -7,7 +7,7 @@ python-decouple==3.8
 
 # JWT pour Supabase
 pyjwt==2.8.0
-cryptography==44.0.1
+supabase
 
 # Cache Redis pour production
 django-redis==5.4.0
