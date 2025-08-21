@@ -29,4 +29,15 @@ urlpatterns = [
     # Profile Management
     path('profile/', views.user_profile, name='user-profile'),
     path('profile/stats/', views.user_stats, name='user-stats'),
+    
+    # AI Recommendations
+    path('recommendations/', views.user_recommendations, name='user-recommendations'),
+    path('games/<int:game_id>/similar/', views.game_recommendations, name='game-recommendations'),
+    path('trending/', views.trending_recommendations, name='trending-recommendations'),
+    
+    # Semantic AI Search
+    path('search/semantic/', views.semantic_search_endpoint, name='semantic-search'),
+    path('search/hybrid/', views.hybrid_search_endpoint, name='hybrid-search'),
+    path('search/suggestions/', views.search_suggestions_endpoint, name='search-suggestions'),
+    path('search/compare/', views.search_compare_endpoint, name='search-compare'),
 ]

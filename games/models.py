@@ -1,6 +1,12 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from pgvector.django import VectorField  # si tu utilises django-pgvector
+try:
+    from pgvector.django import VectorField  # PostgreSQL uniquement
+    HAS_PGVECTOR = True
+except ImportError:
+    HAS_PGVECTOR = False
+    # Fallback pour SQLite - utiliser JSONField
+    VectorField = models.JSONField
 
 class Game(models.Model):
     external_id = models.IntegerField(unique=True)
@@ -20,7 +26,8 @@ class Game(models.Model):
     tags = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    embedding = VectorField(dimensions=384, null=True)  # all-MiniLM-L6-v2
+    # Embedding vector - utilise pgvector si disponible, sinon JSONField
+    embedding = VectorField(dimensions=384, null=True) if HAS_PGVECTOR else models.JSONField(null=True, blank=True)
 
     class Meta:
         db_table = 'games'

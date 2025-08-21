@@ -36,14 +36,18 @@ def text_for_game(game: Game) -> str:
 
 
 def generate_embedding_for_game(game: Game):
-    model = get_model()
-    text = text_for_game(game)
-    emb = model.encode(text, normalize_embeddings=True)
+    try:
+        model = get_model()
+        text = text_for_game(game)
+        emb = model.encode(text, normalize_embeddings=True)
 
-    # Mettre à jour directement sans passer par save()
-    Game.objects.filter(pk=game.pk).update(embedding=emb.tolist())
+        # Mettre à jour directement sans passer par save()
+        Game.objects.filter(pk=game.pk).update(embedding=emb.tolist())
 
-    return emb
+        return emb
+    except Exception as e:
+        print(f"Erreur lors de la génération d'embedding pour {game.name}: {e}")
+        return None
 
 def embed_games(game_ids=None, batch_size=128):
     """Backfill ou update en batch des embeddings de tous les jeux ou d'une liste d'IDs."""

@@ -8,20 +8,20 @@ def recommend_games_for_game(game_id, top_n=5):
     try:
         source_game = Game.objects.get(id=game_id)
     except Game.DoesNotExist:
-        print(f"❌ Jeu avec ID {game_id} non trouvé")
+        print(f"[ERROR] Jeu avec ID {game_id} non trouvé")
         return []
 
     if source_game.embedding is None:
-        print(f"❌ Pas d'embedding pour le jeu {source_game.name}")
+        print(f"[WARNING] Pas d'embedding pour le jeu {source_game.name}")
         return []
 
-    print(f"✅ Génération de recommandations basées sur {source_game.name}")
+    print(f"[INFO] Generation de recommandations basees sur {source_game.name}")
     
     source_emb = np.array(source_game.embedding)
 
     # Récupère tous les autres jeux qui ont un embedding
     candidates = Game.objects.exclude(id=source_game.id).exclude(embedding=None)
-    print(f"✅ {candidates.count()} jeux candidats trouvés")
+    print(f"[INFO] {candidates.count()} jeux candidats trouves")
 
     def cosine_similarity(a, b):
         return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
@@ -38,7 +38,7 @@ def recommend_games_for_game(game_id, top_n=5):
     # Retourne les jeux
     recommended_games = [g for g, sim in similarities[:top_n]]
     
-    print(f"✅ {len(recommended_games)} recommandations générées pour {source_game.name}")
+    print(f"[SUCCESS] {len(recommended_games)} recommandations generees pour {source_game.name}")
     for i, game in enumerate(recommended_games, 1):
         print(f"  {i}. {game.name}")
 
@@ -62,14 +62,14 @@ def recommend_by_library_and_fav(user, top_n=8):
     ]
 
     if not fav_embeddings:
-        print(f"❌ Aucun jeu avec embedding trouvé dans la bibliothèque de l'utilisateur {user}")
+        print(f"[WARNING] Aucun jeu avec embedding trouve dans la bibliotheque de l'utilisateur {user}")
         return []
 
-    print(f"✅ {len(fav_embeddings)} jeux trouvés dans la bibliothèque avec embeddings")
+    print(f"[INFO] {len(fav_embeddings)} jeux trouves dans la bibliotheque avec embeddings")
     
     # Afficher les jeux de la bibliothèque
     for fav in favorites[:5]:  # Affiche les 5 premiers
-        print(f"  📚 {fav.game.name}")
+        print(f"  [LIB] {fav.game.name}")
 
     # Convert to NumPy array
     fav_embeddings = np.array(fav_embeddings)
@@ -93,7 +93,7 @@ def recommend_by_library_and_fav(user, top_n=8):
     similarities.sort(key=lambda x: x[1], reverse=True)
     recommended_games = [g for g, sim in similarities[:top_n]]
 
-    print(f"✅ {len(recommended_games)} recommandations générées basées sur le profil utilisateur")
+    print(f"[SUCCESS] {len(recommended_games)} recommandations generees basees sur le profil utilisateur")
     for i, game in enumerate(recommended_games, 1):
         print(f"  {i}. {game.name}")
     

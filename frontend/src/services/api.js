@@ -168,6 +168,51 @@ class ApiService {
     return response.data;
   }
 
+  // AI Recommendations
+  async getUserRecommendations(limit = 10) {
+    const response = await this.axios.get(`/recommendations/?limit=${limit}`);
+    return response.data;
+  }
+
+  async getGameRecommendations(gameId, limit = 5) {
+    const response = await this.axios.get(`/games/${gameId}/similar/?limit=${limit}`);
+    return response.data;
+  }
+
+  async getTrendingGames(limit = 15) {
+    const response = await this.axios.get(`/trending/?limit=${limit}`);
+    return response.data;
+  }
+
+  // Semantic AI Search
+  async semanticSearch(query, limit = 20, minSimilarity = 0.3) {
+    const response = await this.axios.get('/search/semantic/', {
+      params: { q: query, limit, min_similarity: minSimilarity }
+    });
+    return response.data;
+  }
+
+  async hybridSearch(query, limit = 20) {
+    const response = await this.axios.get('/search/hybrid/', {
+      params: { q: query, limit }
+    });
+    return response.data;
+  }
+
+  async getSearchSuggestions(query, limit = 5) {
+    const response = await this.axios.get('/search/suggestions/', {
+      params: { q: query, limit }
+    });
+    return response.data;
+  }
+
+  async compareSearchMethods(query, limit = 10) {
+    const response = await this.axios.get('/search/compare/', {
+      params: { q: query, limit }
+    });
+    return response.data;
+  }
+
   // Méthodes aliasées pour une meilleure clarté
   async getUserLibrary() {
     return this.getMyLibraryGames();

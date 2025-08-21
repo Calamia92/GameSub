@@ -75,10 +75,41 @@ const GameCard = ({ game, similarityScore = null, compact = false }) => {
 
   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('fr-FR') : 'Non spécifiée';
 
-  const getGenreNames = (genres) => genres?.slice(0, 3).map(g => g.name || g) || [];
+  const getGenreNames = (genres) => {
+    try {
+      // Si genres est déjà un array, l'utiliser directement
+      if (Array.isArray(genres)) {
+        return genres.slice(0, 3).map(g => g.name || g);
+      }
+      // Si genres est une string JSON, la parser
+      if (typeof genres === 'string' && genres.trim() !== '') {
+        const parsedGenres = JSON.parse(genres);
+        return Array.isArray(parsedGenres) ? parsedGenres.slice(0, 3).map(g => g.name || g) : [];
+      }
+      return [];
+    } catch (error) {
+      console.warn('Error parsing genres:', error);
+      return [];
+    }
+  };
 
-  const getPlatformNames = (platforms) =>
-    platforms?.slice(0, 3).map(p => (p.platform?.name || p.name || p)) || [];
+  const getPlatformNames = (platforms) => {
+    try {
+      // Si platforms est déjà un array, l'utiliser directement
+      if (Array.isArray(platforms)) {
+        return platforms.slice(0, 3).map(p => (p.platform?.name || p.name || p));
+      }
+      // Si platforms est une string JSON, la parser
+      if (typeof platforms === 'string' && platforms.trim() !== '') {
+        const parsedPlatforms = JSON.parse(platforms);
+        return Array.isArray(parsedPlatforms) ? parsedPlatforms.slice(0, 3).map(p => (p.platform?.name || p.name || p)) : [];
+      }
+      return [];
+    } catch (error) {
+      console.warn('Error parsing platforms:', error);
+      return [];
+    }
+  };
 
   const getRatingColor = (rating) => {
     if (rating >= 4.5) return 'text-green-600';

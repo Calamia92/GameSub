@@ -19,6 +19,16 @@ from .serializers import (
 )
 from .services import RAWGAPIService
 from .recommender import recommend_by_library_and_fav, recommend_games_for_game
+from .services_recommendations import (
+    get_recommendations_for_user, 
+    get_recommendations_for_game,
+    get_trending_recommendations
+)
+from .services_semantic_search import (
+    semantic_search_games,
+    hybrid_search_games,
+    get_search_suggestions
+)
 
 # -------------------------------
 # Games
@@ -158,8 +168,8 @@ def get_game_substitutes(request, game_id):
     
     # Recommandations basées uniquement sur CE jeu spécifique
     recommended_games = recommend_games_for_game(source_game.id, top_n=5)
-    print(f"✅ Mode JEU: Recommandations basées uniquement sur {source_game.name}")
-    print(f"Résultat: {len(recommended_games)} jeux recommandés")
+    print(f"[INFO] Mode JEU: Recommandations basees uniquement sur {source_game.name}")
+    print(f"Resultat: {len(recommended_games)} jeux recommandes")
 
     substitutes_data = []
     for game in recommended_games:
@@ -208,8 +218,8 @@ def get_library_recommendations(request):
     # Recommandations basées sur TOUTE la bibliothèque utilisateur
     recommended_games = recommend_by_library_and_fav(user=user_id, top_n=8)
     
-    print(f"✅ Mode BIBLIOTHÈQUE: Recommandations basées sur {user_games.count()} jeux de l'utilisateur {user_id}")
-    print(f"Résultat: {len(recommended_games)} jeux recommandés")
+    print(f"[INFO] Mode BIBLIOTHEQUE: Recommandations basees sur {user_games.count()} jeux de l'utilisateur {user_id}")
+    print(f"Resultat: {len(recommended_games)} jeux recommandes")
     
     substitutes_data = []
     for game in recommended_games:
@@ -521,3 +531,218 @@ def user_stats(request):
         cache.set(cache_key, stats, timeout=300)
     
     return Response(stats)
+
+
+# -------------------------------
+# AI Recommendations
+# -------------------------------
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_recommendations(request):
+    """
+    Recommandations de jeux basées sur l'IA pour l'utilisateur connecté
+    """
+    user_auth = request.user
+    user_id = user_auth.id if hasattr(user_auth, 'id') else user_auth.user_id
+    
+    # Cache les recommandations pendant 1 heure
+    cache_key = f"recommendations_{user_id}"
+    recommendations = cache.get(cache_key)
+    
+    if recommendations is None:
+        limit = int(request.GET.get('limit', 10))
+        
+        # Obtenir recommandations basées sur les favoris
+        recommendations = get_recommendations_for_user(str(user_id), limit=limit)
+        
+        # Si pas assez de recommandations, ajouter des tendances
+        if len(recommendations) < limit:
+            trending = get_trending_recommendations(limit - len(recommendations))
+            recommendations.extend(trending)
+        
+        # Cache pendant 1 heure
+        cache.set(cache_key, recommendations, timeout=3600)
+    
+    return Response({
+        'recommendations': recommendations,
+        'count': len(recommendations)
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def game_recommendations(request, game_id):
+    """
+    Recommandations de jeux similaires à un jeu donné
+    """
+    # Cache par jeu pendant 24h (moins volatile)
+    cache_key = f"game_rec_{game_id}"
+    recommendations = cache.get(cache_key)
+    
+    if recommendations is None:
+        limit = int(request.GET.get('limit', 5))
+        recommendations = get_recommendations_for_game(game_id, limit=limit)
+        
+        # Cache pendant 24 heures
+        cache.set(cache_key, recommendations, timeout=86400)
+    
+    return Response({
+        'game_id': game_id,
+        'recommendations': recommendations,
+        'count': len(recommendations)
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def trending_recommendations(request):
+    """
+    Jeux tendance et récents bien notés
+    """
+    cache_key = "trending_games"
+    trending = cache.get(cache_key)
+    
+    if trending is None:
+        limit = int(request.GET.get('limit', 15))
+        trending = get_trending_recommendations(limit=limit)
+        
+        # Cache pendant 6 heures (assez volatile)
+        cache.set(cache_key, trending, timeout=21600)
+    
+    return Response({
+        'trending': trending,
+        'count': len(trending)
+    })
+
+
+# -------------------------------
+# Semantic AI Search
+# -------------------------------
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def semantic_search_endpoint(request):
+    """
+    Recherche sémantique IA basée sur les embeddings
+    """
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return Response({'error': 'Query parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    limit = int(request.GET.get('limit', 20))
+    min_similarity = float(request.GET.get('min_similarity', 0.3))
+    
+    # Cache pour optimiser les performances
+    cache_key = f"semantic_search_{hash(f'{query}_{limit}_{min_similarity}')}"
+    results = cache.get(cache_key)
+    
+    if results is None:
+        results = semantic_search_games(query, limit=limit, min_similarity=min_similarity)
+        
+        # Cache pendant 1 heure
+        cache.set(cache_key, results, timeout=3600)
+    
+    return Response({
+        'query': query,
+        'results': results,
+        'count': len(results),
+        'search_type': 'semantic_ai'
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def hybrid_search_endpoint(request):
+    """
+    Recherche hybride : combine IA sémantique + recherche classique
+    """
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return Response({'error': 'Query parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    limit = int(request.GET.get('limit', 20))
+    
+    # Cache pour optimiser
+    cache_key = f"hybrid_search_{hash(f'{query}_{limit}')}"
+    results = cache.get(cache_key)
+    
+    if results is None:
+        results = hybrid_search_games(query, limit=limit)
+        
+        # Cache pendant 30 minutes (plus volatile que sémantique pure)
+        cache.set(cache_key, results, timeout=1800)
+    
+    return Response({
+        'query': query,
+        'results': results,
+        'count': len(results),
+        'search_type': 'hybrid_ai'
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def search_suggestions_endpoint(request):
+    """
+    Suggestions de recherche intelligentes basées sur l'IA
+    """
+    query = request.GET.get('q', '').strip()
+    if len(query) < 2:
+        return Response({'suggestions': []})
+    
+    limit = int(request.GET.get('limit', 5))
+    
+    # Cache court pour les suggestions
+    cache_key = f"search_suggestions_{hash(f'{query}_{limit}')}"
+    suggestions = cache.get(cache_key)
+    
+    if suggestions is None:
+        suggestions = get_search_suggestions(query, limit=limit)
+        
+        # Cache pendant 10 minutes
+        cache.set(cache_key, suggestions, timeout=600)
+    
+    return Response({
+        'query': query,
+        'suggestions': suggestions,
+        'count': len(suggestions)
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def search_compare_endpoint(request):
+    """
+    Compare les résultats entre recherche classique et IA
+    Utile pour déboguer et comprendre les différences
+    """
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return Response({'error': 'Query parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    limit = int(request.GET.get('limit', 10))
+    
+    # Recherche classique (RAWG + base locale)
+    rawg_service = RAWGAPIService()
+    rawg_results = rawg_service.search_games(query, page=1, page_size=limit) or {'results': []}
+    
+    # Recherche sémantique IA
+    semantic_results = semantic_search_games(query, limit=limit, min_similarity=0.2)
+    
+    return Response({
+        'query': query,
+        'classic_search': {
+            'results': rawg_results.get('results', []),
+            'count': len(rawg_results.get('results', [])),
+            'source': 'rawg_api'
+        },
+        'semantic_search': {
+            'results': semantic_results,
+            'count': len(semantic_results),
+            'source': 'ai_embeddings'
+        },
+        'comparison': {
+            'classic_count': len(rawg_results.get('results', [])),
+            'semantic_count': len(semantic_results),
+            'ai_advantage': len(semantic_results) > len(rawg_results.get('results', []))
+        }
+    })

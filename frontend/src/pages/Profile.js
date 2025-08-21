@@ -73,10 +73,22 @@ const Profile = () => {
         const libraryResponse = await ApiService.getMyLibraryGames();
         setLibraryGames(libraryResponse.results || libraryResponse || []);
 
-        // Recommandations : structure userGame.game (adapte si besoin)
-        if (ApiService.getUserRecommendations) {
-          const recommendationsResponse = await ApiService.getUserRecommendations();
-          setRecommendations(recommendationsResponse.results || recommendationsResponse || []);
+        // Nouvelles recommandations IA
+        try {
+          const recommendationsResponse = await ApiService.getUserRecommendations(8);
+          // Les recommandations IA retournent directement les jeux, pas userGame.game
+          const recommendations = recommendationsResponse.recommendations || [];
+          setRecommendations(recommendations);
+        } catch (error) {
+          console.error('Erreur lors du chargement des recommandations:', error);
+          // En cas d'erreur, charger les jeux tendance comme fallback
+          try {
+            const trendingResponse = await ApiService.getTrendingGames(8);
+            const trending = trendingResponse.trending || [];
+            setRecommendations(trending);
+          } catch (trendingError) {
+            console.error('Erreur lors du chargement des tendances:', error);
+          }
         }
       } catch (error) {
         console.error('Erreur lors du chargement du profil:', error);
@@ -294,11 +306,22 @@ const Profile = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {recommendations.length > 0 ? (
-              recommendations.map((userGame) => (
-                <GameCard key={userGame.id} game={userGame.game} />
+              recommendations.map((recommendation) => (
+                <div key={recommendation.id} className="relative">
+                  <GameCard game={recommendation} />
+                  {/* Badge de score de similarité */}
+                  <div className="absolute top-2 right-2 bg-primary-500 text-white text-xs px-2 py-1 rounded-full">
+                    {Math.round(recommendation.similarity_score * 100)}%
+                  </div>
+                  {recommendation.is_trending && (
+                    <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      🔥 Trending
+                    </div>
+                  )}
+                </div>
               ))
             ) : (
-              <p className="text-gray-500 col-span-full">Aucune recommandation pour le moment.</p>
+              <p className="text-gray-500 col-span-full">Aucune recommandation pour le moment. Ajoutez des jeux à vos favoris pour recevoir des recommandations personnalisées !</p>
             )}
           </div>
         </div>
