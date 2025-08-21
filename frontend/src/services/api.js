@@ -8,7 +8,7 @@ function getDynamicApiUrl() {
     const djangoPortFile = '../django_port.txt';
     // En développement, on essaie plusieurs ports communs
     const commonPorts = [8000, 8001, 8002, 8003];
-    
+
     // Pour l'instant, on utilise une logique simple
     // TODO: Implémenter une vraie détection de port via fetch
     return 'http://localhost:8001/api';
@@ -72,6 +72,21 @@ class ApiService {
   async saveSubstitute(sourceGameId, substituteGameId, justification = '') {
     const response = await this.axios.post('/my-substitutes/', {
       source_game: sourceGameId,
+      substitute_game: substituteGameId,
+      justification,
+    });
+    return response.data;
+  }
+
+  async getSubstituteProfil(substituteGameId, justification = '') {
+    const response = await this.axios.get('/substitutes_library_fav/', {
+      substitute_game: substituteGameId,
+      justification,
+    });
+    return response.data;
+  }
+  async saveSubstituteProfil(substituteGameId, justification = '') {
+    const response = await this.axios.post('/substitutes_library_fav/', {
       substitute_game: substituteGameId,
       justification,
     });

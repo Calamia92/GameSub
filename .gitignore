@@ -342,4 +342,3 @@ scalability_recommendations.md
 
 # Fichiers temporaires de modèles
 games/models_optimized.py
-games/signals.py

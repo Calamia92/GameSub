@@ -4,12 +4,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import ApiService from '../services/api';
 import GameCard from '../components/GameCard';
-import { 
-  CalendarIcon, 
-  StarIcon, 
-  ClockIcon, 
-  GamepadIcon, 
-  TrophyIcon, 
+import {
+  CalendarIcon,
+  StarIcon,
+  ClockIcon,
+  GamepadIcon,
+  TrophyIcon,
   BookmarkIcon,
   ExternalLinkIcon,
   ArrowLeftIcon,
@@ -31,11 +31,11 @@ const GameDetails = () => {
     const fetchGameData = async () => {
       setLoading(true);
       setError('');
-      
+
       try {
         const response = await ApiService.getGameSubstitutes(id);
         setGameData(response.source_game);
-        setSubstitutes(response.substitutes || []);
+        setSubstitutes(response.recommended_substitutes || []); // <-- corrige ici
       } catch (err) {
         setError('Erreur lors du chargement des données du jeu');
         console.error('Game details error:', err);
@@ -54,7 +54,7 @@ const GameDetails = () => {
     }
 
     setSavingSubstitute(substitute.id);
-    
+
     try {
       await ApiService.saveSubstitute(
         gameData.id,
@@ -135,7 +135,7 @@ const GameDetails = () => {
   const getStoreLinks = (stores) => {
     if (!stores || stores.length === 0) return null;
     return stores.map(store => (
-      <a 
+      <a
         key={store.id}
         href={store.url}
         target="_blank"
@@ -157,7 +157,7 @@ const GameDetails = () => {
           <div className="relative">
             {gameData.background_image && (
               <div className="relative h-80 lg:h-96">
-                <img 
+                <img
                   src={gameData.background_image}
                   alt={gameData.name}
                   className="w-full h-full object-cover"
@@ -165,7 +165,7 @@ const GameDetails = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               </div>
             )}
-            
+
             {/* Game Title Overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
               <h1 className="text-4xl lg:text-5xl font-bold mb-2 text-shadow">{gameData.name}</h1>
@@ -191,7 +191,7 @@ const GameDetails = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Game Details */}
           <div className="p-6 lg:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -209,7 +209,7 @@ const GameDetails = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Side Info */}
               <div className="space-y-6">
                 <div className="bg-gray-50 rounded-lg p-6">
@@ -222,7 +222,7 @@ const GameDetails = () => {
                         <p className="text-gray-900">{getGenreNames(gameData.genres)}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start">
                       <GamepadIcon className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
                       <div>
@@ -230,7 +230,7 @@ const GameDetails = () => {
                         <p className="text-gray-900">{getPlatformNames(gameData.platforms)}</p>
                       </div>
                     </div>
-                    
+
                     {gameData.playtime && (
                       <div className="flex items-start">
                         <ClockIcon className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
@@ -240,7 +240,7 @@ const GameDetails = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {gameData.esrb_rating && (
                       <div className="flex items-start">
                         <UsersIcon className="w-5 h-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
@@ -252,7 +252,7 @@ const GameDetails = () => {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Store Links */}
                 {gameData.stores && gameData.stores.length > 0 && (
                   <div className="bg-gray-50 rounded-lg p-6">
@@ -265,12 +265,12 @@ const GameDetails = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Official Website */}
                 {gameData.website && (
                   <div className="bg-gray-50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Site officiel</h3>
-                    <a 
+                    <a
                       href={gameData.website}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -298,7 +298,7 @@ const GameDetails = () => {
                 </span>
               </h2>
             </div>
-            
+
             {substitutes.length === 0 ? (
               <div className="text-center py-12">
                 <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
@@ -315,9 +315,9 @@ const GameDetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {substitutes.map((substitute) => (
                   <div key={substitute.id} className="relative group">
-                    <GameCard 
-                      game={substitute} 
-                      similarityScore={substitute.similarity_score} 
+                    <GameCard
+                      game={substitute}
+                      similarityScore={substitute.similarity_score}
                     />
                     {isAuthenticated && (
                       <button
@@ -339,7 +339,7 @@ const GameDetails = () => {
                 ))}
               </div>
             )}
-            
+
             {!isAuthenticated && substitutes.length > 0 && (
               <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-center justify-center space-x-3">

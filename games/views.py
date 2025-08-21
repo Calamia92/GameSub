@@ -18,6 +18,7 @@ from .serializers import (
     UserLibraryCreateSerializer, AddGameFromAPISerializer
 )
 from .services import RAWGAPIService
+from .recommender import recommend_by_library_and_fav, recommend_games_for_game
 
 # -------------------------------
 # Games
@@ -133,9 +134,14 @@ def search_games_api(request):
     
     return Response(results)
 
+# -------------------------------
+# RECOMMANDATIONS - 2 ROUTES DÉDIÉES
+# -------------------------------
+
 @api_view(['GET'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([IsAuthenticated])
 def get_game_substitutes(request, game_id):
+    
     try:
         source_game = Game.objects.get(external_id=game_id)
     except Game.DoesNotExist:
@@ -144,23 +150,90 @@ def get_game_substitutes(request, game_id):
         if not game_data:
             return Response({'error': 'Game not found'}, status=status.HTTP_404_NOT_FOUND)
         source_game = rawg_service.save_game_to_db(game_data)
+
+    user_id = getattr(request.user, 'id', None)
     
-    rawg_service = RAWGAPIService()
-    substitutes = rawg_service.find_substitutes(source_game.external_id)
+    if not user_id:
+        return Response({'error': 'Invalid user ID'}, status=status.HTTP_400_BAD_REQUEST)
     
-    substitute_data = []
-    for substitute in substitutes:
-        similarity_score = rawg_service.calculate_similarity_score(source_game, substitute)
-        substitute_info = GameSerializer(substitute).data
-        substitute_info['similarity_score'] = similarity_score
-        substitute_data.append(substitute_info)
+    # Recommandations basées uniquement sur CE jeu spécifique
+    recommended_games = recommend_games_for_game(source_game.id, top_n=5)
+    print(f"✅ Mode JEU: Recommandations basées uniquement sur {source_game.name}")
+    print(f"Résultat: {len(recommended_games)} jeux recommandés")
+
+    substitutes_data = []
+    for game in recommended_games:
+        data = GameSerializer(game).data
+        substitutes_data.append(data)
+
+        # Sauvegarde en base
+        Substitution.objects.get_or_create(
+            user_id=user_id,
+            source_game=source_game,
+            substitute_game=game,
+            defaults={'similarity_score': 0.9}
+        )
+
+    return Response({
+        'mode': 'game',
+        'source_game': GameSerializer(source_game).data,
+        'recommended_substitutes': substitutes_data,
+        'total_substitutes': len(substitutes_data)
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_library_recommendations(request):
+
+    user_id = getattr(request.user, 'id', None)
     
-    substitute_data.sort(key=lambda x: x['similarity_score'], reverse=True)
+    if not user_id:
+        return Response({'error': 'Invalid user ID'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Vérifier que l'utilisateur a des jeux dans sa bibliothèque
+    user_games = UserGame.objects.filter(
+        user_id=user_id, 
+        status__in=['library', 'favorite']
+    ).select_related('game')
+    
+    if not user_games.exists():
+        return Response({
+            'mode': 'library',
+            'message': 'No games in library yet. Add some games to get personalized recommendations!',
+            'recommended_substitutes': [],
+            'user_library_count': 0
+        })
+    
+    # Recommandations basées sur TOUTE la bibliothèque utilisateur
+    recommended_games = recommend_by_library_and_fav(user=user_id, top_n=8)
+    
+    print(f"✅ Mode BIBLIOTHÈQUE: Recommandations basées sur {user_games.count()} jeux de l'utilisateur {user_id}")
+    print(f"Résultat: {len(recommended_games)} jeux recommandés")
+    
+    substitutes_data = []
+    for game in recommended_games:
+        data = GameSerializer(game).data
+        substitutes_data.append(data)
+        
+        # Pour la sauvegarde, on utilise le premier jeu de la bibliothèque comme "source"
+        first_library_game = user_games.first().game
+        Substitution.objects.get_or_create(
+            user_id=user_id,
+            source_game=first_library_game,
+            substitute_game=game,
+            mode='user',
+            defaults={'similarity_score': 0.9}
+        )
     
     return Response({
-        'source_game': GameSerializer(source_game).data,
-        'substitutes': substitute_data
+        'mode': 'user',
+        'user_library_count': user_games.count(),
+        'library_games': [GameSerializer(ug.game).data for ug in user_games[:5]],  # Montre les 5 premiers jeux de la biblio
+        'recommended_substitutes': substitutes_data,
+        'total_recommendations': len(substitutes_data)
     })
+
 
 # -------------------------------
 # Substitutions
