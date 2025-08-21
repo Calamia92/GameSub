@@ -297,133 +297,223 @@ const MySubstitutes = () => {
           </div>
         </div>
 
-      {groupBy === 'source' ? (
-        // Groupé par jeu source
-        Object.entries(groupedSubstitutes).map(([sourceGameName, data]) => (
-          <div key={sourceGameName} style={{ marginBottom: '40px' }}>
-            <div style={{
-              background: 'white',
-              padding: '20px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              marginBottom: '20px'
-            }}>
-              <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>
-                Substituts pour: {sourceGameName}
+        {/* Contenu principal */}
+        {processedSubstitutes.length === 0 && substitutes.length > 0 ? (
+          <div className="text-center py-12">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+              <FilterIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Aucun substitut trouvé
               </h3>
-              <p style={{ color: '#666', margin: '0' }}>
-                {data.substitutes.length} substitut{data.substitutes.length > 1 ? 's' : ''} trouvé{data.substitutes.length > 1 ? 's' : ''}
+              <p className="text-gray-600 mb-6">
+                Aucun substitut ne correspond aux critères sélectionnés.
               </p>
+              <button 
+                onClick={() => setFilterSimilarity(0)}
+                className="btn-outline"
+              >
+                Effacer les filtres
+              </button>
             </div>
-            
-            <div className="game-grid">
-              {data.substitutes.map((substitute) => (
-                <div key={substitute.id} style={{ position: 'relative' }}>
-                  <GameCard 
-                    game={substitute.substitute_game}
-                    similarityScore={substitute.similarity_score}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    left: '10px',
-                    right: '10px',
-                    background: 'rgba(0,0,0,0.8)',
-                    color: 'white',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    fontSize: '12px'
-                  }}>
-                    <div><strong>Ajouté:</strong> {formatDate(substitute.created_at)}</div>
-                    {substitute.justification && (
-                      <div style={{ marginTop: '5px' }}>
-                        <strong>Note:</strong> {substitute.justification}
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {groupBy === 'source' ? (
+              // Groupé par jeu source
+              Object.entries(groupedSubstitutes).map(([sourceGameName, data]) => (
+                <div key={sourceGameName} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  {/* En-tête du groupe */}
+                  <div className="bg-gradient-to-r from-primary-50 to-primary-100 p-6 border-b border-primary-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-primary-200 p-2 rounded-full">
+                          <GamepadIcon className="w-5 h-5 text-primary-700" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-primary-900">
+                            Substituts pour: {sourceGameName}
+                          </h3>
+                          <p className="text-sm text-primary-600">
+                            {data.substitutes.length} substitut{data.substitutes.length > 1 ? 's' : ''} trouvé{data.substitutes.length > 1 ? 's' : ''}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))
-      ) : (
-        // Groupé par date
-        Object.entries(groupedSubstitutes).map(([date, subs]) => (
-          <div key={date} style={{ marginBottom: '40px' }}>
-            <h3 style={{
-              background: '#f8f9fa',
-              padding: '15px',
-              margin: '0 0 20px 0',
-              borderRadius: '8px',
-              color: '#333'
-            }}>
-              {date} ({subs.length} substitut{subs.length > 1 ? 's' : ''})
-            </h3>
-            
-            <div className="game-grid">
-              {subs.map((substitute) => (
-                <div key={substitute.id} style={{ position: 'relative' }}>
-                  <GameCard 
-                    game={substitute.substitute_game}
-                    similarityScore={substitute.similarity_score}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: '10px',
-                    left: '10px',
-                    background: 'rgba(0,123,255,0.9)',
-                    color: 'white',
-                    padding: '5px 8px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
-                  }}>
-                    Substitut de: {substitute.source_game.name}
-                  </div>
-                  {substitute.justification && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '10px',
-                      left: '10px',
-                      right: '10px',
-                      background: 'rgba(0,0,0,0.8)',
-                      color: 'white',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}>
-                      {substitute.justification}
+                      <LinkIcon className="w-5 h-5 text-primary-600" />
                     </div>
-                  )}
+                  </div>
+                  
+                  {/* Grille des substituts */}
+                  <div className="p-6">
+                    <div className={viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                      : 'space-y-4'
+                    }>
+                      {data.substitutes.map((substitute) => (
+                        viewMode === 'grid' ? (
+                          <div key={substitute.id} className="relative group">
+                            <GameCard 
+                              game={substitute.substitute_game}
+                              similarityScore={substitute.similarity_score}
+                              compact={true}
+                            />
+                            {/* Info overlay */}
+                            <div className="absolute inset-x-3 bottom-3 bg-black/80 backdrop-blur-sm text-white p-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <div className="flex items-center space-x-1 text-xs mb-1">
+                                <ClockIcon className="w-3 h-3" />
+                                <span>Ajouté {formatDate(substitute.created_at)}</span>
+                              </div>
+                              {substitute.justification && (
+                                <p className="text-xs text-gray-200 line-clamp-2">
+                                  {substitute.justification}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div key={substitute.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center space-x-4">
+                              {substitute.substitute_game.background_image && (
+                                <img
+                                  src={substitute.substitute_game.background_image}
+                                  alt={substitute.substitute_game.name}
+                                  className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-semibold text-gray-900 truncate">
+                                  {substitute.substitute_game.name}
+                                </h4>
+                                <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                                  <div className="flex items-center space-x-1">
+                                    <TrendingUpIcon className="w-3 h-3" />
+                                    <span>{Math.round(substitute.similarity_score * 100)}% similaire</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <ClockIcon className="w-3 h-3" />
+                                    <span>{formatDate(substitute.created_at)}</span>
+                                  </div>
+                                </div>
+                                {substitute.justification && (
+                                  <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+                                    {substitute.justification}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              // Groupé par date
+              Object.entries(groupedSubstitutes).map(([date, subs]) => (
+                <div key={date} className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <CalendarIcon className="w-5 h-5 text-gray-500" />
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {date}
+                    </h3>
+                    <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-sm font-medium">
+                      {subs.length} substitut{subs.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className={viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                      : 'space-y-4'
+                    }>
+                      {subs.map((substitute) => (
+                        viewMode === 'grid' ? (
+                          <div key={substitute.id} className="relative group">
+                            <GameCard 
+                              game={substitute.substitute_game}
+                              similarityScore={substitute.similarity_score}
+                              compact={true}
+                            />
+                            {/* Badge jeu source */}
+                            <div className="absolute top-3 left-3 bg-primary-600 text-white px-2 py-1 rounded-md text-xs font-medium">
+                              ↔ {substitute.source_game.name.substring(0, 15)}{substitute.source_game.name.length > 15 ? '...' : ''}
+                            </div>
+                            {/* Info overlay */}
+                            {substitute.justification && (
+                              <div className="absolute inset-x-3 bottom-3 bg-black/80 backdrop-blur-sm text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <p className="text-xs line-clamp-2">
+                                  {substitute.justification}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div key={substitute.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center space-x-4">
+                              {substitute.substitute_game.background_image && (
+                                <img
+                                  src={substitute.substitute_game.background_image}
+                                  alt={substitute.substitute_game.name}
+                                  className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-semibold text-gray-900 truncate">
+                                  {substitute.substitute_game.name}
+                                </h4>
+                                <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                                  <div className="flex items-center space-x-1">
+                                    <LinkIcon className="w-3 h-3" />
+                                    <span>Substitut de: {substitute.source_game.name}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <TrendingUpIcon className="w-3 h-3" />
+                                    <span>{Math.round(substitute.similarity_score * 100)}%</span>
+                                  </div>
+                                </div>
+                                {substitute.justification && (
+                                  <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+                                    {substitute.justification}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Pied de page */}
+        {processedSubstitutes.length > 0 && (
+          <div className="mt-12 text-center">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+              <p className="text-gray-600 mb-6">
+                💡 <strong>Astuce :</strong> Plus vous explorez de jeux, plus vous découvrirez d'alternatives intéressantes!
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <button 
+                  onClick={() => navigate('/')}
+                  className="btn-primary"
+                >
+                  Découvrir plus de jeux
+                </button>
+                <span className="text-gray-400">ou</span>
+                <button 
+                  onClick={() => navigate('/library')}
+                  className="btn-outline"
+                >
+                  Voir ma bibliothèque
+                </button>
+              </div>
             </div>
           </div>
-        ))
-      )}
-
-      <div style={{ 
-        textAlign: 'center', 
-        marginTop: '40px',
-        padding: '20px',
-        background: '#f8f9fa',
-        borderRadius: '8px'
-      }}>
-        <p>Continuez à explorer de nouveaux jeux pour enrichir votre bibliothèque!</p>
-        <button 
-          onClick={() => navigate('/')}
-          style={{
-            background: '#007bff',
-            color: 'white',
-            border: 'none',
-            padding: '12px 24px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '16px'
-          }}
-        >
-          Rechercher plus de jeux
-        </button>
+        )}
       </div>
     </div>
   );

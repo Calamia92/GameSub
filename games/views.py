@@ -4,6 +4,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from .models import Game, Substitution, UserGame, SearchHistory, UserLibrary
+from django.db.models import Prefetch, Count
+from django.core.cache import cache
+from django.utils import timezone
+from datetime import timedelta
+from decouple import config
 from .serializers import (
     GameSerializer, GameSearchSerializer, SubstitutionSerializer,
     SubstitutionCreateSerializer, UserGameSerializer, UserGameCreateSerializer,
@@ -21,21 +26,33 @@ class GameListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        queryset = Game.objects.all()
+        # Cache optimisé pour Redis 30MB
         search = self.request.query_params.get('search')
         genre = self.request.query_params.get('genre')
         platform = self.request.query_params.get('platform')
         
-        if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search) | Q(description__icontains=search)
-            )
-        if genre:
-            queryset = queryset.filter(genres__icontains=genre)
-        if platform:
-            queryset = queryset.filter(platforms__icontains=platform)
+        cache_key = f"games_{hash(f'{search}_{genre}_{platform}')}"  # Hash pour clé courte
+        queryset = cache.get(cache_key)
+        
+        if queryset is None:
+            queryset = Game.objects.all()
             
-        return queryset.order_by('-rating')
+            if search:
+                queryset = queryset.filter(
+                    Q(name__icontains=search) | Q(description__icontains=search)
+                )
+            if genre:
+                queryset = queryset.filter(genres__icontains=genre)
+            if platform:
+                queryset = queryset.filter(platforms__icontains=platform)
+                
+            queryset = queryset.order_by('-rating')
+            
+            # TTL configurable depuis .env
+            ttl = config('CACHE_TTL_GAMES', default=120, cast=int)
+            cache.set(cache_key, queryset, ttl)
+            
+        return queryset
 
 class GameDetailView(generics.RetrieveAPIView):
     queryset = Game.objects.all()
@@ -84,12 +101,31 @@ def search_games_api(request):
             if dates:
                 filters['dates'] = dates
                 
-            SearchHistory.objects.create(
+            # Évite les doublons récents et limite l'historique
+            recent_cutoff = timezone.now() - timedelta(minutes=5)
+            existing = SearchHistory.objects.filter(
                 user_id=request.user.id,
                 query=query,
-                filters=filters,
-                results_count=results.get('count', 0)
-            )
+                created_at__gt=recent_cutoff
+            ).exists()
+            
+            if not existing:
+                SearchHistory.objects.create(
+                    user_id=request.user.id,
+                    query=query,
+                    filters=filters,
+                    results_count=results.get('count', 0)
+                )
+                
+                # Nettoie automatiquement si plus de 100 recherches
+                search_count = SearchHistory.objects.filter(user_id=request.user.id).count()
+                if search_count > 100:
+                    old_searches = SearchHistory.objects.filter(
+                        user_id=request.user.id
+                    ).order_by('created_at')[:search_count-50]
+                    SearchHistory.objects.filter(
+                        id__in=[s.id for s in old_searches]
+                    ).delete()
         except Exception as e:
             pass  # Ignorer les erreurs d'historique
     
@@ -135,7 +171,10 @@ class SubstitutionListCreateView(generics.ListCreateAPIView):
         user_id = getattr(self.request.user, 'id', None)
         if not user_id:
             return Substitution.objects.none()
-        return Substitution.objects.filter(user_id=user_id).order_by('-created_at')
+        # Optimisation: select_related pour éviter les requêtes N+1
+        return Substitution.objects.filter(user_id=user_id).select_related(
+            'source_game', 'substitute_game'
+        ).order_by('-created_at')
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -164,10 +203,23 @@ class UserGameListCreateView(generics.ListCreateAPIView):
             return UserGame.objects.none()
             
         status_filter = self.request.query_params.get('status')
-        queryset = UserGame.objects.filter(user_id=user_id)
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-        return queryset.order_by('-created_at')
+        
+        # Cache optimisé par utilisateur et statut
+        cache_key = f"ug_{user_id}_{hash(status_filter or 'all')}"  # Clé courte
+        queryset = cache.get(cache_key)
+        
+        if queryset is None:
+            # Optimisation: select_related pour éviter les requêtes N+1
+            queryset = UserGame.objects.filter(user_id=user_id).select_related('game')
+            if status_filter:
+                queryset = queryset.filter(status=status_filter)
+            queryset = queryset.order_by('-created_at')
+            
+            # TTL configurable
+            ttl = config('CACHE_TTL_USER_GAMES', default=60, cast=int)
+            cache.set(cache_key, queryset, ttl)
+            
+        return queryset
 
     def perform_create(self, serializer):
         user_id = getattr(self.request.user, 'id', None)
@@ -235,7 +287,10 @@ def get_library_games(request, library_id):
         user_id = getattr(request.user, 'id', None)
         library = UserLibrary.objects.get(id=library_id, user_id=user_id)
         
-        games = UserGame.objects.filter(user_id=user_id, status='library')
+        # Optimisation avec select_related
+        games = UserGame.objects.filter(
+            user_id=user_id, status='library'
+        ).select_related('game')
         serializer = UserGameSerializer(games, many=True)
         
         return Response({

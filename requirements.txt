@@ -9,5 +9,9 @@ python-decouple==3.8
 pyjwt==2.8.0
 cryptography==44.0.1
 
+# Cache Redis pour production
+django-redis==5.4.0
+redis==5.0.1
+
 # Utilitaires pour RAWG API
 python-slugify==8.0.1

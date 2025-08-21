@@ -16,7 +16,8 @@ Une application web moderne pour découvrir des alternatives à vos jeux favoris
 - **Django 5.2** - Framework web Python
 - **Django REST Framework** - API REST
 - **Supabase PostgreSQL** - Base de données cloud
-- **JWT Authentication** - Authentification moderne
+- **JWT Authentication** - Authentification sécurisée avec vérification de signature
+- **Redis Cloud** - Cache haute performance (30MB optimisé)
 - **RAWG API** - Source des données de jeux (20k+ jeux)
 
 ### Frontend  
@@ -31,7 +32,8 @@ Une application web moderne pour découvrir des alternatives à vos jeux favoris
 1. **Python 3.8+** installé
 2. **Node.js 16+** et npm installés
 3. **Compte Supabase** (gratuit)
-4. **Clé API RAWG** (gratuite sur https://rawg.io/apidocs)
+4. **Compte Redis Cloud** (gratuit - 30MB)
+5. **Clé API RAWG** (gratuite sur https://rawg.io/apidocs)
 
 ## ⚡ Installation Rapide
 
@@ -66,6 +68,9 @@ DB_PORT=5432
 # Supabase Auth
 SUPABASE_URL=https://votre_projet.supabase.co
 SUPABASE_ANON_KEY=votre_clé_anonyme_supabase
+
+# Redis Cache (production)
+REDIS_URL=redis://username:password@your-redis-host:port
 
 # RAWG API (obligatoire)
 RAWG_API_KEY=votre_clé_rawg_ici
@@ -107,12 +112,12 @@ npm start
 ## ✅ Fonctionnalités Implémentées
 
 🎮 **Recherche RAWG** - API avec 20k+ jeux réels  
-🔐 **Auth Supabase** - JWT moderne, sessions persistantes  
+🔐 **Auth Supabase** - JWT sécurisé avec vérification de signature  
 🎨 **Design moderne** - Tailwind CSS, animations fluides  
 📱 **Responsive** - Mobile-first design  
-🚀 **Performance** - Lazy loading, optimisations  
-🛡️ **Sécurisé** - CORS configuré, validation des données  
-⚡ **Temps réel** - Recherche instantanée  
+🚀 **Performance** - Cache Redis, optimisations avancées  
+🛡️ **Sécurisé** - Headers HTTPS, CORS restreint, validation stricte  
+⚡ **Temps réel** - Recherche instantanée mise en cache  
 
 ## 📁 Architecture
 
@@ -199,7 +204,18 @@ DROP TABLE IF EXISTS authtoken_token CASCADE;
 ```env
 DEBUG=False
 ALLOWED_HOSTS=votre-domaine.com
+CORS_ALLOWED_ORIGINS=https://votre-domaine.com
+REDIS_URL=redis://username:password@your-redis:port
 # Gardez les mêmes clés Supabase et RAWG
+```
+
+### Commandes utiles
+```bash
+# Surveiller le cache Redis
+python manage.py cache_monitor --stats
+
+# Nettoyer le cache si nécessaire
+python manage.py cache_monitor --clean
 ```
 
 ## 🤝 Contribution

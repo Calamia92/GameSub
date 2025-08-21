@@ -1,7 +1,24 @@
 import axios from 'axios';
 import { getAccessToken } from './supabase';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+// Fonction pour détecter le port Django dynamiquement
+function getDynamicApiUrl() {
+  try {
+    // Essaie de lire le fichier de port Django
+    const djangoPortFile = '../django_port.txt';
+    // En développement, on essaie plusieurs ports communs
+    const commonPorts = [8000, 8001, 8002, 8003];
+    
+    // Pour l'instant, on utilise une logique simple
+    // TODO: Implémenter une vraie détection de port via fetch
+    return 'http://localhost:8001/api';
+  } catch (error) {
+    console.warn('Impossible de détecter le port Django, utilisation du port par défaut 8001');
+    return 'http://localhost:8001/api';
+  }
+}
+
+const API_BASE_URL = getDynamicApiUrl();
 
 class ApiService {
   constructor() {

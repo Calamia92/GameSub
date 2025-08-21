@@ -322,3 +322,24 @@ docker-compose.yml
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env.production
+
+# GameSub specific files
+django_port.txt
+frontend/react_port.txt
+frontend/start_frontend.js
+
+# Scripts de démarrage (optionnel - gardez si vous voulez les versionner)
+# start_django.py
+# start_servers.py
+# start.bat
+
+# Fichiers de test et optimisation
+performance_test.py
+scalability_recommendations.md
+
+# Fichiers temporaires de modèles
+games/models_optimized.py
+games/signals.py
