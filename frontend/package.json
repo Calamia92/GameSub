@@ -35,7 +35,7 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8001",
+  "proxy": "http://localhost:8000",
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "lucide-react": "^0.540.0",

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { useAuth } from '../contexts/AuthContext';
+import ApiService from '../services/api';
 
 export default function ChatBot() {
   const { isAuthenticated } = useAuth();
@@ -11,18 +11,14 @@ export default function ChatBot() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Configuration adaptée au backend GameSub
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
-
   // Récupération des débuts de questions depuis Django
   useEffect(() => {
     if (open && questionStarters.length === 0) {
-      axios
-        .get(`${API_BASE}/api/chatbot/starters/`)
+      ApiService.get('/chatbot/starters/')
         .then((res) => setQuestionStarters(res.data))
         .catch((err) => console.error("Erreur récupération starters:", err));
     }
-  }, [open, API_BASE, questionStarters.length]);
+  }, [open, questionStarters.length]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,7 +55,7 @@ export default function ChatBot() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API_BASE}/api/chatbot/`, { 
+      const res = await ApiService.post('/chatbot/', { 
         question: msg 
       });
       

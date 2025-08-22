@@ -11,10 +11,10 @@ function getDynamicApiUrl() {
 
     // Pour l'instant, on utilise une logique simple
     // TODO: Implémenter une vraie détection de port via fetch
-    return 'http://localhost:8001/api';
+    return 'http://localhost:8000/api';
   } catch (error) {
-    console.warn('Impossible de détecter le port Django, utilisation du port par défaut 8001');
-    return 'http://localhost:8001/api';
+    console.warn('Impossible de détecter le port Django, utilisation du port par défaut 8000');
+    return 'http://localhost:8000/api';
   }
 }
 
@@ -241,6 +241,27 @@ class ApiService {
   // Méthodes aliasées pour une meilleure clarté
   async getUserLibrary() {
     return this.getMyLibraryGames();
+  }
+
+  // Méthodes génériques pour les requêtes HTTP
+  async get(url, config = {}) {
+    const response = await this.axios.get(url, config);
+    return response;
+  }
+
+  async post(url, data = {}, config = {}) {
+    const response = await this.axios.post(url, data, config);
+    return response;
+  }
+
+  async put(url, data = {}, config = {}) {
+    const response = await this.axios.put(url, data, config);
+    return response;
+  }
+
+  async delete(url, config = {}) {
+    const response = await this.axios.delete(url, config);
+    return response;
   }
 }
 

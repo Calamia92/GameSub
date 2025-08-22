@@ -38,6 +38,7 @@ class SupabaseJWTMiddleware:
         try:
             # Vérifier le token avec Supabase
             user_data = self.verify_supabase_token(token)
+            
             if user_data:
                 # Créer un objet utilisateur personnalisé
                 request.user = SupabaseUser(user_data)

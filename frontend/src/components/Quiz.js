@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"; 
-import axios from "axios";
 import GameCard from './GameCard';
+import ApiService from '../services/api';
 
 export default function Quiz() {
   const [questions, setQuestions] = useState([]);
@@ -10,15 +10,11 @@ export default function Quiz() {
   const [loading, setLoading] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
 
-  // Configuration adaptée au backend GameSub
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
-
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/api/quiz/questions/`)
+    ApiService.get('/quiz/questions/')
       .then((res) => setQuestions(res.data))
       .catch((err) => console.error("Erreur chargement questions:", err));
-  }, [API_BASE]);
+  }, []);
 
   const choices = [
     ["Aventure", "Stratégie", "Exploration", "Survie", "Simulation"],
@@ -50,7 +46,7 @@ export default function Quiz() {
 
   const handleSubmit = async (finalAnswers) => {
     try {
-      const res = await axios.post(`${API_BASE}/api/quiz/submit/`, { 
+      const res = await ApiService.post('/quiz/submit/', { 
         answers: finalAnswers 
       });
       setSuggestions(res.data.suggestions || []);
