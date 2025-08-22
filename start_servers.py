@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Script principal pour démarrer les deux serveurs avec des ports dynamiques
 """

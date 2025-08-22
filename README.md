@@ -35,7 +35,33 @@ Une application web moderne pour découvrir des alternatives à vos jeux favoris
 4. **Compte Redis Cloud** (gratuit - 30MB)
 5. **Clé API RAWG** (gratuite sur https://rawg.io/apidocs)
 
-## ⚡ Installation Rapide
+## ⚡ Démarrage Rapide
+
+GameSub propose **3 méthodes** pour lancer les serveurs :
+
+### 🖱️ Méthode 1 : Script Windows (Recommandée)
+```bash
+start.bat
+```
+Script Batch qui lance automatiquement Django + React avec gestion des ports dynamiques.
+
+### 🐍 Méthode 2 : Script Python  
+```bash
+python start_servers.py
+```
+Script Python cross-platform avec gestion avancée des processus.
+
+### ⚙️ Méthode 3 : Lancement Manuel
+```bash
+# Terminal 1 - Django
+python start_django.py
+
+# Terminal 2 - React  
+cd frontend
+node start_frontend.js
+```
+
+---
 
 ### 1. Cloner le projet
 ```bash
@@ -167,9 +193,10 @@ GameSub/
 
 ### Erreur CORS
 ```bash
-# Vérifiez que les serveurs tournent sur les bons ports :
-# Django: http://localhost:8001
-# React: http://localhost:3003
+# Les scripts automatiques gèrent les ports dynamiquement :
+# Django: http://localhost:8000-8001
+# React: http://localhost:3000-3004
+# Vérifiez les fichiers django_port.txt et frontend/react_port.txt
 ```
 
 ### Erreur API RAWG "401 Unauthorized"
