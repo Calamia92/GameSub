@@ -21,5 +21,8 @@ huggingface-hub
 sentence-transformers
 numpy
 
+# OpenAI API (compatible Hugging Face)
+openai
+
 # PGVector pour Django (official package)
 pgvector

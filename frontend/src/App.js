@@ -12,6 +12,8 @@ import GameDetails from './pages/GameDetails';
 import SearchHistory from './pages/SearchHistory';
 import MyLibrary from './pages/MyLibrary';
 import Profile from './pages/Profile';
+import AIPreferences from './pages/AIPreferences';
+import ChatBot from './components/ChatBot';
 
 function App() {
   return (
@@ -30,8 +32,10 @@ function App() {
                 <Route path="/my-library" element={<MyLibrary />} />
                 <Route path="/search-history" element={<SearchHistory />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/ai-preferences" element={<AIPreferences />} />
                 <Route path="/game/:id" element={<GameDetails />} />
               </Routes>
+              <ChatBot />
             </main>
           </div>
         </Router>

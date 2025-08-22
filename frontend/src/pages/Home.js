@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GameCard from '../components/GameCard';
 import UnifiedSearch from '../components/UnifiedSearch';
 import { 
   Search,
   Brain,
-  Gamepad2
+  Gamepad2,
+  Sparkles
 } from 'lucide-react';
 
 const Home = () => {
   const [searchResults, setSearchResults] = useState(null);
   const [searchMode, setSearchMode] = useState(null);
+  const navigate = useNavigate();
 
   const handleSearchResults = (results, mode) => {
     setSearchResults(results);
@@ -185,6 +188,33 @@ const Home = () => {
               <p className="text-gray-600 text-sm">
                 Explorez de nouveaux jeux parmi notre base de 800+ titres
               </p>
+            </div>
+          </div>
+          
+          {/* Call to Action Quiz */}
+          <div className="mt-12 max-w-2xl mx-auto">
+            <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-2xl p-8 border border-primary-100">
+              <div className="text-center space-y-4">
+                <div className="bg-primary-100 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                  <Sparkles className="w-10 h-10 text-primary-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Vous ne savez pas quoi chercher ?
+                </h3>
+                <p className="text-gray-600 text-lg">
+                  Découvrez vos préférences de jeu avec notre quiz IA personnalisé
+                </p>
+                <button
+                  onClick={() => navigate('/ai-preferences')}
+                  className="inline-flex items-center space-x-2 bg-primary-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-1"
+                >
+                  <Brain className="w-6 h-6" />
+                  <span>Calcule tes goûts</span>
+                </button>
+                <p className="text-sm text-gray-500">
+                  5 questions • Recommandations IA personnalisées
+                </p>
+              </div>
             </div>
           </div>
         </div>

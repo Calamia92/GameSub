@@ -19,6 +19,23 @@
     @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
   }
 
+  /* Styles custom pour les composants IA */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
   .btn-secondary {
     @apply btn bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500;
   }
@@ -46,5 +63,4 @@
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
   }
-  
 }

@@ -45,4 +45,10 @@ urlpatterns = [
     path('search/ai-adaptive/', views.ai_adaptive_search_endpoint, name='ai-adaptive-search'),
     path('ai-filters/options/', views.ai_filter_options_endpoint, name='ai-filter-options'),
     path('debug/ai-filters/', views.debug_ai_filters_endpoint, name='debug-ai-filters'),
+    
+    # 🤖 AI User Preferences & Chatbot
+    path('quiz/questions/', views.get_quiz_questions, name='quiz-questions'),
+    path('quiz/submit/', views.submit_quiz_answers, name='quiz-submit'),
+    path('chatbot/starters/', views.get_chatbot_starters, name='chatbot-starters'),
+    path('chatbot/', views.chatbot_response, name='chatbot-response'),
 ]

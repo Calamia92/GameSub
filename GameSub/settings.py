@@ -233,3 +233,8 @@ else:
             }
         }
     }
+
+# =========================
+# 🤖 IA Configuration - Hugging Face
+# =========================
+HUGGINGFACE_API_TOKEN = config("HUGGINGFACE_API_TOKEN", default="")

@@ -13,6 +13,14 @@ from decouple import config
 from django.conf import settings
 import logging
 
+# Import conditionnel d'OpenAI
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OpenAI = None
+    OPENAI_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 from .serializers import (
     GameSerializer, GameSearchSerializer, SubstitutionSerializer,
@@ -887,3 +895,194 @@ def debug_ai_filters_endpoint(request):
             'error': 'Debug error',
             'details': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# =================================
+# 🤖 IA USER PREFERENCE QUIZ & CHATBOT 
+# =================================
+
+# Configuration IA
+QUESTIONS = [
+    "Quel type d'expérience préfères-tu dans un jeu ?",
+    "Comment aimes-tu jouer ?",
+    "Quelle durée de jeu préfères-tu ?",
+    "Quel type d'univers te plaît le plus ?",
+    "Quels genres d'activités apprécies-tu dans un jeu ?"
+]
+
+USER_RESPONSES = {}
+USER_CONVERSATIONS = {}
+
+QUESTION_STARTERS = [
+    "Quel jeu me conseillerais-tu pour...",
+    "Comment améliorer mes compétences sur",
+    "Je cherche un jeu qui...",
+    "As-tu des astuces pour...",
+]
+
+# Client OpenAI configuré pour Hugging Face
+client = None
+if OPENAI_AVAILABLE:
+    try:
+        if hasattr(settings, 'HUGGINGFACE_API_TOKEN') and settings.HUGGINGFACE_API_TOKEN:
+            client = OpenAI(
+                base_url="https://router.huggingface.co/v1",
+                api_key=settings.HUGGINGFACE_API_TOKEN
+            )
+        else:
+            logger.warning("HUGGINGFACE_API_TOKEN non configuré - fonctionnalités IA désactivées")
+    except Exception as e:
+        logger.warning(f"Erreur configuration client IA: {e}")
+else:
+    logger.warning("OpenAI non installé - fonctionnalités IA désactivées")
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_quiz_questions(request):
+    """Retourne les questions du quiz de préférences utilisateur"""
+    return Response(QUESTIONS)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def submit_quiz_answers(request):
+    """Traite les réponses du quiz et génère des suggestions de jeux enrichies avec RAWG"""
+    if not client:
+        return Response({"error": "Service IA non disponible"}, status=500)
+    
+    user_id = request.session.session_key or "anonymous"
+    answers = request.data.get('answers', [])
+    
+    if not answers or len(answers) != len(QUESTIONS):
+        return Response({"error": "Toutes les questions doivent être répondues"}, status=400)
+    
+    USER_RESPONSES[user_id] = answers
+    
+    # Création du prompt pour obtenir des noms de jeux
+    prompt = (
+        f"Basé sur ces préférences: {answers}. "
+        f"Suggère UNIQUEMENT 6 noms de jeux vidéo populaires, un par ligne, "
+        f"sans description, sans tirets, sans numéros. "
+        f"Format: NomDuJeu"
+    )
+    
+    try:
+        completion = client.chat.completions.create(
+            model="deepseek-ai/DeepSeek-V3.1:fireworks-ai",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.7
+        )
+        
+        ai_suggestions = completion.choices[0].message.content.strip()
+        
+        # Parse les noms de jeux
+        game_names = []
+        for line in ai_suggestions.split("\n"):
+            line = line.strip("- • 1234567890.").strip()
+            if line and len(line) > 2:
+                game_names.append(line)
+        
+        # Enrichir avec l'API RAWG
+        rawg_service = RAWGAPIService()
+        enriched_games = []
+        
+        for game_name in game_names[:5]:  # Limite à 5 jeux
+            try:
+                # Recherche dans RAWG
+                rawg_results = rawg_service.search_games(game_name, page_size=1)
+                if rawg_results and rawg_results.get('results'):
+                    game_data = rawg_results['results'][0]
+                    
+                    # Formate les données pour le frontend
+                    enriched_game = {
+                        'name': game_data.get('name', game_name),
+                        'description': f"Recommandé pour vos préférences: {', '.join(answers[:2])}",
+                        'background_image': game_data.get('background_image'),
+                        'rating': game_data.get('rating'),
+                        'released': game_data.get('released'),
+                        'genres': [g['name'] for g in game_data.get('genres', [])[:3]],
+                        'platforms': [p['platform']['name'] for p in game_data.get('platforms', [])[:3]],
+                        'metacritic': game_data.get('metacritic'),
+                        'id': game_data.get('id'),
+                        'external_id': game_data.get('id'),
+                        'user_preferences': answers
+                    }
+                    enriched_games.append(enriched_game)
+                else:
+                    # Fallback si pas trouvé dans RAWG
+                    enriched_games.append({
+                        'name': game_name,
+                        'description': f"Jeu recommandé basé sur vos goûts: {answers[0] if answers else 'personnalisés'}",
+                        'user_preferences': answers
+                    })
+            except Exception as e:
+                logger.warning(f"Erreur enrichissement RAWG pour {game_name}: {e}")
+                # Fallback
+                enriched_games.append({
+                    'name': game_name,
+                    'description': f"Recommandé pour vos préférences gaming",
+                    'user_preferences': answers
+                })
+        
+        return Response({"suggestions": enriched_games})
+        
+    except Exception as e:
+        logger.exception("Erreur génération suggestions IA:")
+        return Response({"error": "Erreur génération IA", "details": str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_chatbot_starters(request):
+    """Retourne les débuts de questions pour le chatbot"""
+    return Response(QUESTION_STARTERS)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def chatbot_response(request):
+    """Chatbot IA spécialisé jeux vidéo"""
+    if not client:
+        return Response({"answer": "Service IA non disponible"}, status=500)
+    
+    user_id = request.session.session_key or "anonymous"
+    question = request.data.get("question", "").strip()
+    
+    if not question:
+        return Response({"answer": "Merci de poser une question."})
+    
+    # Récupère l'historique de conversation
+    conversation = USER_CONVERSATIONS.get(user_id, [])
+    
+    # Ajoute le contexte GameSub si premier message
+    if not conversation:
+        system_prompt = (
+            "Tu es un assistant spécialisé dans les jeux vidéo pour GameSub. "
+            "Réponds de manière concise et pertinente aux questions sur les jeux, "
+            "les recommandations, les astuces. Privilégie des jeux populaires et accessibles."
+        )
+        conversation.append({"role": "system", "content": system_prompt})
+    
+    conversation.append({"role": "user", "content": question})
+    
+    try:
+        completion = client.chat.completions.create(
+            model="deepseek-ai/DeepSeek-V3.1:fireworks-ai",
+            messages=conversation,
+            max_tokens=400,
+            temperature=0.8
+        )
+        
+        bot_message = completion.choices[0].message.content.strip()
+        
+        # Sauvegarde dans l'historique
+        conversation.append({"role": "assistant", "content": bot_message})
+        USER_CONVERSATIONS[user_id] = conversation[-10:]  # Garde seulement les 10 derniers messages
+        
+        return Response({"answer": bot_message})
+        
+    except Exception as e:
+        logger.exception("Erreur chatbot IA:")
+        return Response({"answer": "Erreur serveur, réessayez."}, status=500)
