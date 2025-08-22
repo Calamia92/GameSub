@@ -14,6 +14,7 @@ import MyLibrary from './pages/MyLibrary';
 import Profile from './pages/Profile';
 import AIPreferences from './pages/AIPreferences';
 import ChatBot from './components/ChatBot';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -28,11 +29,11 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/my-substitutes" element={<MySubstitutes />} />
-                <Route path="/my-library" element={<MyLibrary />} />
-                <Route path="/search-history" element={<SearchHistory />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/ai-preferences" element={<AIPreferences />} />
+                <Route path="/my-substitutes" element={<ProtectedRoute><MySubstitutes /></ProtectedRoute>} />
+                <Route path="/my-library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />
+                <Route path="/search-history" element={<ProtectedRoute><SearchHistory /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/ai-preferences" element={<ProtectedRoute><AIPreferences /></ProtectedRoute>} />
                 <Route path="/game/:id" element={<GameDetails />} />
               </Routes>
               <ChatBot />

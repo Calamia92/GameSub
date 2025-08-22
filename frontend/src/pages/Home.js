@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import GameCard from '../components/GameCard';
 import UnifiedSearch from '../components/UnifiedSearch';
 import { 
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 
 const Home = () => {
+  const { isAuthenticated } = useAuth();
   const [searchResults, setSearchResults] = useState(null);
   const [searchMode, setSearchMode] = useState(null);
   const navigate = useNavigate();
@@ -191,32 +193,67 @@ const Home = () => {
             </div>
           </div>
           
-          {/* Call to Action Quiz */}
-          <div className="mt-12 max-w-2xl mx-auto">
-            <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-2xl p-8 border border-primary-100">
-              <div className="text-center space-y-4">
-                <div className="bg-primary-100 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
-                  <Sparkles className="w-10 h-10 text-primary-600" />
+          {/* Call to Action Quiz - Utilisateurs connectés uniquement */}
+          {isAuthenticated && (
+            <div className="mt-12 max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-2xl p-8 border border-primary-100">
+                <div className="text-center space-y-4">
+                  <div className="bg-primary-100 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                    <Sparkles className="w-10 h-10 text-primary-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    Vous ne savez pas quoi chercher ?
+                  </h3>
+                  <p className="text-gray-600 text-lg">
+                    Découvrez vos préférences de jeu avec notre quiz IA personnalisé
+                  </p>
+                  <button
+                    onClick={() => navigate('/ai-preferences')}
+                    className="inline-flex items-center space-x-2 bg-primary-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-1"
+                  >
+                    <Brain className="w-6 h-6" />
+                    <span>Calcule tes goûts</span>
+                  </button>
+                  <p className="text-sm text-gray-500">
+                    5 questions • Recommandations IA personnalisées
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Vous ne savez pas quoi chercher ?
-                </h3>
-                <p className="text-gray-600 text-lg">
-                  Découvrez vos préférences de jeu avec notre quiz IA personnalisé
-                </p>
-                <button
-                  onClick={() => navigate('/ai-preferences')}
-                  className="inline-flex items-center space-x-2 bg-primary-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-1"
-                >
-                  <Brain className="w-6 h-6" />
-                  <span>Calcule tes goûts</span>
-                </button>
-                <p className="text-sm text-gray-500">
-                  5 questions • Recommandations IA personnalisées
-                </p>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Message pour utilisateurs non connectés */}
+          {!isAuthenticated && (
+            <div className="mt-12 max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200">
+                <div className="text-center space-y-4">
+                  <div className="bg-gray-200 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                    <Brain className="w-10 h-10 text-gray-500" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    Découvrez encore plus de possibilités
+                  </h3>
+                  <p className="text-gray-600 text-lg">
+                    Connectez-vous pour accéder aux recommandations IA, sauvegarder vos jeux favoris et bien plus
+                  </p>
+                  <div className="flex justify-center space-x-4">
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="inline-flex items-center space-x-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700 transition-all duration-200"
+                    >
+                      <span>Se connecter</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/register')}
+                      className="inline-flex items-center space-x-2 bg-white text-primary-600 border border-primary-600 px-6 py-3 rounded-xl font-semibold hover:bg-primary-50 transition-all duration-200"
+                    >
+                      <span>S'inscrire</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

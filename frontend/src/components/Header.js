@@ -37,8 +37,8 @@ const Header = () => {
 
   const navigationItems = [
     { path: '/', label: 'Recherche', icon: Search },
-    { path: '/ai-preferences', label: 'Calcule tes goûts', icon: Brain },
     ...(isAuthenticated ? [
+      { path: '/ai-preferences', label: 'Calcule tes goûts', icon: Brain },
       { path: '/my-substitutes', label: 'Mes Substituts', icon: Star },
       { path: '/my-library', label: 'Ma Bibliothèque', icon: Library },
       { path: '/search-history', label: 'Historique', icon: History },

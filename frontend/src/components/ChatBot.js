@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ChatBot() {
+  const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -86,6 +88,11 @@ export default function ChatBot() {
       sendMessage();
     }
   };
+
+  // Ne pas afficher le ChatBot si l'utilisateur n'est pas connecté
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-5 right-5 z-50 font-sans">

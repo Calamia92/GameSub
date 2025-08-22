@@ -13,8 +13,10 @@ import {
 } from 'lucide-react';
 import ApiService from '../services/api';
 import AIFilters from './AIFilters';
+import { useAuth } from '../contexts/AuthContext';
 
 const UnifiedSearch = ({ onResults, className = '' }) => {
+  const { isAuthenticated } = useAuth();
   const [query, setQuery] = useState('');
   const [isAIMode, setIsAIMode] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -290,30 +292,32 @@ const UnifiedSearch = ({ onResults, className = '' }) => {
             )}
           </div>
 
-          {/* Toggle IA */}
-          <div className="flex items-center space-x-2">
-            <span className={`text-sm font-medium ${isAIMode ? 'text-purple-600' : 'text-gray-600'}`}>
-              IA
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsAIMode(!isAIMode)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                isAIMode 
-                  ? 'bg-purple-600 focus:ring-purple-500' 
-                  : 'bg-gray-200 focus:ring-gray-500'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                  isAIMode ? 'translate-x-6' : 'translate-x-1'
+          {/* Toggle IA - Réservé aux utilisateurs connectés */}
+          {isAuthenticated && (
+            <div className="flex items-center space-x-2">
+              <span className={`text-sm font-medium ${isAIMode ? 'text-purple-600' : 'text-gray-600'}`}>
+                IA
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsAIMode(!isAIMode)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  isAIMode 
+                    ? 'bg-purple-600 focus:ring-purple-500' 
+                    : 'bg-gray-200 focus:ring-gray-500'
                 }`}
-              />
-              {isAIMode && (
-                <Sparkles className="absolute right-1 h-3 w-3 text-white" />
-              )}
-            </button>
-          </div>
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                    isAIMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+                {isAIMode && (
+                  <Sparkles className="absolute right-1 h-3 w-3 text-white" />
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Bouton filtres adaptatif selon le mode */}
           {isAIMode ? (

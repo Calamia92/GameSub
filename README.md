@@ -4,11 +4,26 @@ Une application web moderne pour découvrir des alternatives à vos jeux favoris
 
 ## 🚀 Fonctionnalités
 
-- **Recherche intelligente** : Trouvez des jeux en temps réel via l'API RAWG
-- **Suggestions IA** : Algorithme de recommandation basé sur les genres, tags et ratings
-- **Authentification Supabase** : Système d'auth moderne avec JWT
+### 🔍 Recherche & Découverte
+- **Recherche classique** : Accès libre à 20k+ jeux via l'API RAWG
+- **Recherche IA sémantique** : Compréhension intelligente des requêtes (utilisateurs connectés)
+- **Filtres adaptatifs IA** : Filtres intelligents qui s'adaptent au contexte de recherche
+
+### 🤖 Intelligence Artificielle (Utilisateurs connectés)
+- **Quiz de préférences** : Découvrez vos goûts gaming en 5 questions avec l'IA
+- **ChatBot spécialisé** : Assistant IA expert en jeux vidéo pour conseils et recommandations
+- **Suggestions personnalisées** : Recommandations basées sur vos préférences et comportement
+
+### 👤 Fonctionnalités Personnelles (Authentification requise)
+- **Ma Bibliothèque** : Sauvegardez et organisez vos jeux favoris
+- **Mes Substituts** : Gardez une trace de vos alternatives de jeux
+- **Historique de recherche** : Retrouvez facilement vos recherches précédentes
+- **Profil utilisateur** : Gestion de compte et statistiques personnelles
+
+### 🎨 Interface & Design
 - **Design moderne** : Interface responsive avec Tailwind CSS et animations
-- **Base de données cloud** : PostgreSQL hébergé sur Supabase
+- **Authentification Supabase** : Système d'auth moderne avec JWT
+- **Expérience progressive** : Fonctionnalités de base gratuites, avancées pour les membres
 
 ## 🛠 Stack Technique
 
@@ -20,11 +35,17 @@ Une application web moderne pour découvrir des alternatives à vos jeux favoris
 - **Redis Cloud** - Cache haute performance (30MB optimisé)
 - **RAWG API** - Source des données de jeux (20k+ jeux)
 
+### IA & Machine Learning
+- **Hugging Face API** - Modèles IA pour suggestions et chat (DeepSeek-V3.1)
+- **OpenAI Client** - Interface compatible pour interactions IA
+- **Embeddings sémantiques** - Recherche intelligente basée sur la compréhension du sens
+- **Sentence Transformers** - Traitement du langage naturel
+
 ### Frontend  
 - **React 18** - Interface utilisateur moderne
 - **Tailwind CSS** - Framework CSS utilitaire
 - **Lucide React** - Icônes modernes
-- **React Router** - Navigation SPA
+- **React Router** - Navigation SPA avec routes protégées
 - **Axios** - Client HTTP avec intercepteurs
 
 ## 📋 Prérequis
@@ -34,6 +55,7 @@ Une application web moderne pour découvrir des alternatives à vos jeux favoris
 3. **Compte Supabase** (gratuit)
 4. **Compte Redis Cloud** (gratuit - 30MB)
 5. **Clé API RAWG** (gratuite sur https://rawg.io/apidocs)
+6. **Token Hugging Face** (gratuit sur https://huggingface.co/settings/tokens)
 
 ## ⚡ Démarrage Rapide
 
@@ -100,6 +122,9 @@ REDIS_URL=redis://username:password@your-redis-host:port
 
 # RAWG API (obligatoire)
 RAWG_API_KEY=votre_clé_rawg_ici
+
+# Hugging Face IA (obligatoire pour fonctionnalités IA)
+HUGGINGFACE_API_TOKEN=votre_token_huggingface_ici
 ```
 
 #### Appliquer les migrations
@@ -129,20 +154,38 @@ npm start
 
 ## 🎯 Utilisation
 
-1. **Recherche de jeux** : Page d'accueil avec recherche en temps réel
-2. **Navigation** : Interface responsive avec menu mobile
-3. **Authentification** : Inscription/connexion avec Supabase
-4. **Découverte** : Parcourez des milliers de jeux avec filtres
-5. **Sauvegarde** : Créez votre bibliothèque personnelle
+### 🔓 Utilisateurs Visiteurs (Sans connexion)
+1. **Recherche classique** : Parcourez 20k+ jeux via RAWG API
+2. **Détails des jeux** : Consultez les informations complètes des jeux
+3. **Navigation libre** : Interface responsive et intuitive
+
+### 🔐 Utilisateurs Connectés (Fonctionnalités complètes)
+1. **Recherche IA sémantique** : "jeux comme Zelda" avec compréhension contextuelle
+2. **Quiz de préférences** : Découvrez vos goûts en 5 questions IA (Calcule tes goûts)
+3. **ChatBot IA** : Assistant personnel expert en gaming
+4. **Ma Bibliothèque** : Sauvegardez et organisez vos jeux favoris
+5. **Mes Substituts** : Gardez vos alternatives de jeux
+6. **Historique** : Retrouvez facilement vos recherches
 
 ## ✅ Fonctionnalités Implémentées
 
-🎮 **Recherche RAWG** - API avec 20k+ jeux réels  
+### 🎮 Core Features
+🔍 **Recherche RAWG** - API avec 20k+ jeux réels  
 🔐 **Auth Supabase** - JWT sécurisé avec vérification de signature  
 🎨 **Design moderne** - Tailwind CSS, animations fluides  
 📱 **Responsive** - Mobile-first design  
 🚀 **Performance** - Cache Redis, optimisations avancées  
-🛡️ **Sécurisé** - Headers HTTPS, CORS restreint, validation stricte  
+
+### 🤖 Intelligence Artificielle
+🧠 **Quiz IA** - Analyse des préférences gaming en 5 questions  
+💬 **ChatBot spécialisé** - Assistant IA expert en jeux vidéo  
+🔍 **Recherche sémantique** - Compréhension contextuelle des requêtes  
+🎯 **Suggestions personnalisées** - Recommandations enrichies RAWG + IA  
+
+### 🛡️ Sécurité & Accès
+🔒 **Routes protégées** - Fonctionnalités IA réservées aux membres  
+🚫 **Restrictions d'accès** - Expérience progressive selon authentification  
+✅ **API sécurisées** - Endpoints protégés côté backend  
 ⚡ **Temps réel** - Recherche instantanée mise en cache  
 
 ## 📁 Architecture
@@ -155,8 +198,9 @@ GameSub/
 │   └── urls.py          # URLs principales
 ├── games/               # App Django principale
 │   ├── models.py        # Modèles avec UUID (Supabase)
-│   ├── views.py         # Vues API REST
+│   ├── views.py         # Vues API REST + IA endpoints
 │   ├── services.py      # Service RAWG API
+│   ├── services_ai_*.py # Services IA (embeddings, recherche, filtres)
 │   └── serializers.py   # Sérialiseurs DRF
 ├── frontend/            # Application React
 │   ├── src/
@@ -173,11 +217,17 @@ GameSub/
 
 ## 🔌 Endpoints API
 
-### Jeux
+### Jeux (Accès libre)
 - `GET /api/search/?q=query&page=1` - Rechercher des jeux
 - `GET /api/substitutes/{game_id}/` - Obtenir les substituts d'un jeu
 - `GET /api/games/` - Liste des jeux locaux
 - `GET /api/games/{id}/` - Détails d'un jeu
+
+### Intelligence Artificielle (Auth Supabase requise)
+- `GET /api/quiz/questions/` - Obtenir 5 questions du quiz IA
+- `POST /api/quiz/submit/` - Soumettre réponses et obtenir suggestions enrichies RAWG
+- `GET /api/chatbot/starters/` - Obtenir questions suggérées du ChatBot
+- `POST /api/chatbot/` - Envoyer message au ChatBot IA
 
 ### Utilisateur (Auth Supabase requise)
 - `GET /api/my-substitutes/` - Mes substituts sauvegardés
@@ -188,6 +238,7 @@ GameSub/
 ### Authentification (gérée par Supabase côté frontend)
 - Headers: `Authorization: Bearer {jwt_token}`
 - Middleware Django valide automatiquement les JWT Supabase
+- **Restriction d'accès** : Endpoints IA protégés avec `IsAuthenticated`
 
 ## 🐛 Dépannage
 
@@ -205,10 +256,25 @@ GameSub/
 RAWG_API_KEY=votre_vraie_clé_ici  # Pas de JWT Supabase !
 ```
 
+### Erreur Hugging Face IA "401 Unauthorized"
+```bash
+# Vérifiez votre token Hugging Face dans .env
+HUGGINGFACE_API_TOKEN=hf_votre_token_ici
+# Créez un token gratuit sur: https://huggingface.co/settings/tokens
+# Sans ce token, les fonctionnalités IA (Quiz, ChatBot) ne fonctionnent pas
+```
+
 ### Erreur Supabase connexion
 ```bash
 # Vérifiez vos URLs et clés Supabase dans .env
 # Testez la connexion dans l'interface Supabase
+```
+
+### Fonctionnalités IA non disponibles
+```bash
+# Vérifiez que vous êtes connecté en tant qu'utilisateur authentifié
+# Les fonctionnalités IA sont réservées aux membres (Quiz, ChatBot, Recherche sémantique)
+# Visiteurs: recherche classique uniquement
 ```
 
 ### Base de données
@@ -243,6 +309,10 @@ python manage.py cache_monitor --stats
 
 # Nettoyer le cache si nécessaire
 python manage.py cache_monitor --clean
+
+# Tester les endpoints IA (utilisateurs connectés uniquement)
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" http://localhost:8001/api/quiz/questions/
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" http://localhost:8001/api/chatbot/starters/
 ```
 
 ## 🤝 Contribution

@@ -938,14 +938,14 @@ else:
 
 
 @api_view(['GET'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([IsAuthenticated])
 def get_quiz_questions(request):
-    """Retourne les questions du quiz de préférences utilisateur"""
+    """Retourne les questions du quiz de préférences utilisateur - Authentification requise"""
     return Response(QUESTIONS)
 
 
 @api_view(['POST'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([IsAuthenticated])
 def submit_quiz_answers(request):
     """Traite les réponses du quiz et génère des suggestions de jeux enrichies avec RAWG"""
     if not client:
@@ -1034,14 +1034,14 @@ def submit_quiz_answers(request):
 
 
 @api_view(['GET'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([IsAuthenticated])
 def get_chatbot_starters(request):
-    """Retourne les débuts de questions pour le chatbot"""
+    """Retourne les débuts de questions pour le chatbot - Authentification requise"""
     return Response(QUESTION_STARTERS)
 
 
 @api_view(['POST'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([IsAuthenticated])
 def chatbot_response(request):
     """Chatbot IA spécialisé jeux vidéo"""
     if not client:
