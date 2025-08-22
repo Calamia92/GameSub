@@ -51,7 +51,7 @@ def _postgresql_semantic_search(query_embedding: np.ndarray, limit: int, min_sim
         with connection.cursor() as cursor:
             # Utilise l'opérateur de distance cosinus de pgvector
             sql = """
-                SELECT id, name, slug, background_image, rating, released, 
+                SELECT id, external_id, name, slug, background_image, rating, released, 
                        genres, platforms, tags, description,
                        1 - (embedding <=> %s::vector) as similarity_score
                 FROM games 
@@ -73,16 +73,17 @@ def _postgresql_semantic_search(query_embedding: np.ndarray, limit: int, min_sim
             for row in cursor.fetchall():
                 results.append({
                     'id': row[0],
-                    'name': row[1],
-                    'slug': row[2],
-                    'background_image': row[3],
-                    'rating': row[4],
-                    'released': row[5],
-                    'genres': row[6],
-                    'platforms': row[7],
-                    'tags': row[8],
-                    'description': row[9],
-                    'similarity_score': float(row[10]),
+                    'external_id': row[1],
+                    'name': row[2],
+                    'slug': row[3],
+                    'background_image': row[4],
+                    'rating': row[5],
+                    'released': row[6],
+                    'genres': row[7],
+                    'platforms': row[8],
+                    'tags': row[9],
+                    'description': row[10],
+                    'similarity_score': float(row[11]),
                     'search_type': 'semantic_ai'
                 })
             
@@ -127,6 +128,7 @@ def _sqlite_semantic_search(query_embedding: np.ndarray, limit: int, min_similar
         for game, similarity in similarities[:limit]:
             results.append({
                 'id': game.id,
+                'external_id': game.external_id,
                 'name': game.name,
                 'slug': game.slug,
                 'background_image': game.background_image,
@@ -194,6 +196,7 @@ def _classic_text_search(query: str, limit: int) -> List[Dict]:
     for game in games:
         results.append({
             'id': game.id,
+            'external_id': game.external_id,
             'name': game.name,
             'slug': game.slug,
             'background_image': game.background_image,
