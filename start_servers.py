@@ -21,6 +21,12 @@ def run_command_in_background(command, cwd=None):
     )
 
 def main():
+    import sys
+    # Force UTF-8 pour Windows
+    if sys.platform == 'win32':
+        import subprocess
+        subprocess.run('chcp 65001', shell=True, capture_output=True)
+    
     print("🚀 Démarrage des serveurs GameSub...")
     
     # Redémarre les serveurs actuels
